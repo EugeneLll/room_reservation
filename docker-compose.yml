@@ -1,0 +1,37 @@
+services:
+
+  web:
+    build: .
+    ports:
+      - 8000:8000
+    env_file:
+      - envs/.env
+    depends_on:
+      - db
+      - redis
+    
+    
+
+
+  db:
+    image: postgres:16.2-alpine3.19
+    restart: unless-stopped
+    env_file:
+      - envs/.env
+    ports:
+      - "5432:5432"
+    expose:
+      - "5432"
+
+  redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --save 20 1 --loglevel warning
+    expose:
+      - "6379"
+    env_file:
+      - envs/.env
+      
+
