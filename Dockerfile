@@ -13,7 +13,9 @@ COPY pyproject.toml poetry.lock ./
 RUN poetry install --only main --no-root --no-ansi
 
 COPY /room_reservation .
+
 COPY entrypoint.sh /entrypoint.sh
+
 RUN chmod +x /entrypoint.sh
 
 ENV PYTHONUNBUFFERED=1 \

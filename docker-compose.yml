@@ -5,19 +5,16 @@ services:
     ports:
       - 8000:8000
     env_file:
-      - envs/.env
+      - .env
     depends_on:
       - db
       - redis
     
-    
-
-
   db:
     image: postgres:16.2-alpine3.19
     restart: unless-stopped
     env_file:
-      - envs/.env
+      - .env
     ports:
       - "5432:5432"
     expose:
@@ -32,6 +29,6 @@ services:
     expose:
       - "6379"
     env_file:
-      - envs/.env
+      - .env
       
 
