@@ -27,4 +27,12 @@ black = "^25.1.0"
 flake8 = "^7.2.0"
 isort = "^6.0.1"
 mypy = "^1.15.0"
+django-stubs = {extras = ["compatible-mypy"], version = "^5.2.0"}
 
+[tool.mypy]
+plugins = ["mypy_django_plugin.main"]
+ignore_missing_imports = true
+mypy_path = "./room_reservation"
+
+[tool.django-stubs]
+django_settings_module = "room_reservation.settings"
