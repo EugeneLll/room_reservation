@@ -1,7 +1,8 @@
-import django
 import os
-from dotenv import load_dotenv
+
+import django
 from django.contrib.auth import get_user_model
+from dotenv import load_dotenv
 
 load_dotenv()
 
