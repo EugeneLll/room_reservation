@@ -34,3 +34,4 @@ repos:
       types: [python]
       exclude: migrations/.*
       args: [--config-file=pyproject.toml]
+      
