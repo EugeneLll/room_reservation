@@ -13,10 +13,26 @@ dependencies = [
     "uuid (>=1.30,<2.0)",
     "environ (>=1.0,<2.0)",
     "dotenv (>=0.9.9,<0.10.0)",
-    "django-redis (>=5.4.0,<6.0.0)"
+    "django-redis (>=5.4.0,<6.0.0)",
 ]
 
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^4.2.0"
+black = "^25.1.0"
+flake8 = "^7.2.0"
+isort = "^6.0.1"
+mypy = "^1.15.0"
+django-stubs = {extras = ["compatible-mypy"], version = "^5.2.0"}
+
+[tool.mypy]
+plugins = ["mypy_django_plugin.main"]
+ignore_missing_imports = true
+mypy_path = "./room_reservation"
+
+[tool.django-stubs]
+django_settings_module = "room_reservation.settings"
