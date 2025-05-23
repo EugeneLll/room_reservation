@@ -30,7 +30,12 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "testapp.apps.TestappConfig",
+    "rest_framework",
+    "rest_framework.authtoken",
+    "rooms",
+    "reservations",
+    "testapp",
+    "users",
 ]
 
 MIDDLEWARE = [
@@ -42,6 +47,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+REST_FRAMEWORK: dict[object, object] = {}
 
 ROOT_URLCONF = "room_reservation.urls"
 
