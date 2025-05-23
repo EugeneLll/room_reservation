@@ -1,5 +1,4 @@
-import datetime
-
+from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
 from users.serializers import UserSerializer
@@ -25,7 +24,7 @@ class ReservationSerializer(serializers.ModelSerializer):
 
         if data["start"] > data["end"]:
             raise serializers.ValidationError("end must occur after start", "start_before_end")
-        if datetime.datetime.now(tz=datetime.timezone.utc) > data["start"]:
+        if timezone.now() > data["start"]:
             raise serializers.ValidationError("start must be after now", "start_before_now")
         return data
 
@@ -35,6 +34,13 @@ class ReservationSerializer(serializers.ModelSerializer):
 
 
 class ParticipantsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Participant
+        fields = ["id", "reservation", "user", "role", "attends"]
+
+
+class ParticipantsListSerializer(serializers.ModelSerializer):
     user = UserSerializer()
 
     class Meta:

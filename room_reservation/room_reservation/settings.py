@@ -34,8 +34,8 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "rooms",
     "reservations",
-    "testapp",
     "users",
+    "api",
 ]
 
 MIDDLEWARE = [

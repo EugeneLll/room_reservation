@@ -14,6 +14,9 @@ class Reservation(models.Model):
     end = models.DateTimeField()
     title = models.CharField(max_length=255, null=True, blank=True)
 
+    def __str__(self):
+        return f"{self.title} in room: {self.room} starts: {self.start} ends: {self.end}"
+
 
 class Participant(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -33,3 +36,6 @@ class Participant(models.Model):
         ],
         default="pending",
     )
+
+    def __str__(self):
+        return f"Participant: {self.user.username} ({self.role}) in {self.reservation.room} ({self.attends})"
