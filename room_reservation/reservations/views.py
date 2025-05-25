@@ -8,13 +8,19 @@ from .serializers import (
     ParticipantsListSerializer,
     ParticipantsSerializer,
     ReservationSerializer,
+    ReservationsListSerializer,
 )
 
 
 class ReservationsViewSet(viewsets.ModelViewSet):
     queryset = Reservation.objects.all()
     permission_classes = [AllowAny]
-    serializer_class = ReservationSerializer
+
+    def get_serializer_class(self):
+        if self.action in ["list", "retrieve"]:
+            return ReservationsListSerializer
+        return ReservationSerializer
+
     # parts of extended functionality
     # def create(self, request, *args, **kwargs):
     #     serializer = ReservationSerializer(data=request.data)
@@ -27,7 +33,6 @@ class ReservationsViewSet(viewsets.ModelViewSet):
 
 class ParticipantsViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
-    lookup_url_kwarg = "reservation_id"
 
     def get_serializer_class(self):
         if self.action in ["list", "retrieve"]:
