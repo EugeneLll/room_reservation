@@ -1,6 +1,6 @@
-import { Table, Button, Space, Modal, Form, Input, message } from 'antd';
-import { useState, useEffect } from 'react';
-import { RoomService } from '../api/RoomService';
+import { Table, Button, Space, Modal, Form, Input, message } from "antd";
+import { useState, useEffect } from "react";
+import { RoomService } from "../api/RoomService";
 
 export default function RoomList() {
   const [rooms, setRooms] = useState([]);
@@ -9,16 +9,18 @@ export default function RoomList() {
   const [messageApi, contextHolder] = message.useMessage();
 
   const columns = [
-    { title: 'Name', dataIndex: 'room_name', key: 'room_name' },
-    { title: "Address", dataIndex:"address", key:"address" },
-    { title: 'Capacity', dataIndex: 'human_capacity', key: 'human_capacity' },
+    { title: "Name", dataIndex: "room_name", key: "room_name" },
+    { title: "Address", dataIndex: "address", key: "address" },
+    { title: "Capacity", dataIndex: "human_capacity", key: "human_capacity" },
     {
-      title: 'Actions',
-      key: 'actions',
+      title: "Actions",
+      key: "actions",
       render: (_, record) => (
         <Space>
           <Button onClick={() => handleEdit(record)}>Edit</Button>
-          <Button danger onClick={() => handleDelete(record.id)}>Delete</Button>
+          <Button danger onClick={() => handleDelete(record.id)}>
+            Delete
+          </Button>
         </Space>
       ),
     },
@@ -33,7 +35,7 @@ export default function RoomList() {
       const response = await RoomService.getRooms();
       setRooms(response.data);
     } catch (error) {
-      messageApi.open({type:"error",content:"Failed to load rooms"});
+      messageApi.open({ type: "error", content: "Failed to load rooms" });
     }
   };
 
@@ -41,16 +43,22 @@ export default function RoomList() {
     try {
       if (values.id) {
         await RoomService.updateRoom(values.id, values);
-        messageApi.open({type:"success",content:'Room updated successfully'});
+        messageApi.open({
+          type: "success",
+          content: "Room updated successfully",
+        });
       } else {
         await RoomService.createRoom(values);
-        messageApi.open({type:"success",content:'Room created successfully'});
+        messageApi.open({
+          type: "success",
+          content: "Room created successfully",
+        });
       }
       loadRooms();
       setIsModalOpen(false);
       form.resetFields();
     } catch (error) {
-      messageApi.open({type:"error",content:'Operation failed'});
+      messageApi.open({ type: "error", content: "Operation failed" });
     }
   };
 
@@ -62,10 +70,10 @@ export default function RoomList() {
   const handleDelete = async (roomId) => {
     try {
       await RoomService.deleteRoom(roomId);
-      messageApi.open({type:"success",content:'Room deleted'});
+      messageApi.open({ type: "success", content: "Room deleted" });
       loadRooms();
     } catch (error) {
-      messageApi.open({type:"error",content:'Delete failed'});
+      messageApi.open({ type: "error", content: "Delete failed" });
     }
   };
 
@@ -79,7 +87,7 @@ export default function RoomList() {
       <Table dataSource={rooms} columns={columns} rowKey="id" />
 
       <Modal
-        title={form.getFieldValue('id') ? 'Edit Room' : 'Create Room'}
+        title={form.getFieldValue("id") ? "Edit Room" : "Create Room"}
         open={isModalOpen}
         onCancel={() => {
           setIsModalOpen(false);
@@ -94,10 +102,18 @@ export default function RoomList() {
           <Form.Item label="Name" name="room_name" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item label="Address" name="address" rules={[{ required: true }]}>
+          <Form.Item
+            label="Address"
+            name="address"
+            rules={[{ required: true }]}
+          >
             <Input />
           </Form.Item>
-          <Form.Item label="Capacity" name="human_capacity" rules={[{ required: false }]}>
+          <Form.Item
+            label="Capacity"
+            name="human_capacity"
+            rules={[{ required: false }]}
+          >
             <Input type="number" />
           </Form.Item>
         </Form>
