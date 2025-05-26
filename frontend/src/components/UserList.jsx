@@ -1,6 +1,6 @@
-import { Table, Button, Modal, Form, Input, Space, message } from 'antd';
-import { useState, useEffect } from 'react';
-import { UserService } from '../api/UserService';
+import { Button, Form, Input, Modal, Space, Table, message } from "antd";
+import { useEffect, useState } from "react";
+import { UserService } from "../api/UserService";
 
 export default function UserList() {
   const [users, setUsers] = useState([]);
@@ -9,19 +9,21 @@ export default function UserList() {
   const [messageApi, contextHolder] = message.useMessage();
 
   const columns = [
-  { title: 'Username', dataIndex: 'username', key: 'username' },
-  { title: 'Email', dataIndex: 'email', key: 'email' },
-  {
-    title: 'Actions',
-    key: 'actions',
-    render: (_, record) => (
-      <Space>
-        <Button onClick={() => handleEdit(record)}>Edit</Button>
-        <Button danger onClick={() => handleDelete(record.id)}>Delete</Button>
-      </Space>
-    ),
-  },
-];
+    { title: "Username", dataIndex: "username", key: "username" },
+    { title: "Email", dataIndex: "email", key: "email" },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_, record) => (
+        <Space>
+          <Button onClick={() => handleEdit(record)}>Edit</Button>
+          <Button danger onClick={() => handleDelete(record.id)}>
+            Delete
+          </Button>
+        </Space>
+      ),
+    },
+  ];
 
   useEffect(() => {
     loadUsers();
@@ -32,7 +34,7 @@ export default function UserList() {
       const response = await UserService.getUsers();
       setUsers(response.data);
     } catch (error) {
-      messageApi.open({type:"error",content:'Failed to load users'});
+      messageApi.open({ type: "error", content: "Failed to load users" });
     }
   };
 
@@ -40,16 +42,22 @@ export default function UserList() {
     try {
       if (values.id) {
         await UserService.updateUser(values.id, values);
-        messageApi.open({type:"success",content:'User updated successfully'});
+        messageApi.open({
+          type: "success",
+          content: "User updated successfully",
+        });
       } else {
         await UserService.createUser(values);
-        messageApi.open({type:"error",content:'User created successfully'});
+        messageApi.open({
+          type: "error",
+          content: "User created successfully",
+        });
       }
       loadUsers();
       setIsModalOpen(false);
       form.resetFields();
     } catch (error) {
-      messageApi.open({type:"error",content:'Operation failed'});
+      messageApi.open({ type: "error", content: "Operation failed" });
     }
   };
 
@@ -61,10 +69,10 @@ export default function UserList() {
   const handleDelete = async (userId) => {
     try {
       await UserService.deleteUser(userId);
-      messageApi.open({type:"success",content:'User deleted'});
+      messageApi.open({ type: "success", content: "User deleted" });
       loadUsers();
     } catch (error) {
-      messageApi.open({type:"error",content:'Delete failed'});
+      messageApi.open({ type: "error", content: "Delete failed" });
     }
   };
 
@@ -75,15 +83,15 @@ export default function UserList() {
         Add User
       </Button>
 
-      <Table 
-        dataSource={users} 
-        columns={columns} 
+      <Table
+        dataSource={users}
+        columns={columns}
         rowKey="id"
         style={{ marginTop: 24 }}
       />
 
       <Modal
-        title={form.getFieldValue('id') ? 'Edit User' : 'Create User'}
+        title={form.getFieldValue("id") ? "Edit User" : "Create User"}
         open={isModalOpen}
         onCancel={() => {
           setIsModalOpen(false);
@@ -95,34 +103,32 @@ export default function UserList() {
           <Form.Item name="id" hidden>
             <Input />
           </Form.Item>
-          
-          <Form.Item 
-            label="Username" 
-            name="username" 
+
+          <Form.Item
+            label="Username"
+            name="username"
             rules={[{ required: true }]}
           >
             <Input />
           </Form.Item>
 
-          <Form.Item 
-            label="Email" 
-            name="email" 
+          <Form.Item
+            label="Email"
+            name="email"
             rules={[
               { required: true },
-              { type: 'email', message: 'Invalid email format' }
+              { type: "email", message: "Invalid email format" },
             ]}
           >
             <Input />
           </Form.Item>
 
-          <Form.Item 
-            label="Password" 
-            name="password" 
-            rules={[
-              { required: true },
-            ]}
+          <Form.Item
+            label="Password"
+            name="password"
+            rules={[{ required: true }]}
           >
-            <Input type="password"/>
+            <Input type="password" />
           </Form.Item>
         </Form>
       </Modal>

@@ -1,9 +1,19 @@
-import { Table, Button, Modal, Form, Input, DatePicker, Space, message, Select } from 'antd';
-import { useEffect, useState } from 'react';
-import { ReservationService } from '../api/ReservationService';
-import { RoomService } from '../api/RoomService';
-import { UserService } from '../api/UserService';
-import dayjs from 'dayjs';
+import {
+  Table,
+  Button,
+  Modal,
+  Form,
+  Input,
+  DatePicker,
+  Space,
+  message,
+  Select,
+} from "antd";
+import { useEffect, useState } from "react";
+import { ReservationService } from "../api/ReservationService";
+import { RoomService } from "../api/RoomService";
+import { UserService } from "../api/UserService";
+import dayjs from "dayjs";
 
 export default function ReservationList() {
   const [reservations, setReservations] = useState([]);
@@ -15,36 +25,43 @@ export default function ReservationList() {
   const [form] = Form.useForm();
   const [participantForm] = Form.useForm();
   const [messageApi, contextHolder] = message.useMessage();
-  const roles = [{id:"attendee",name:"Attendee"},{id:"organizer",name:"Organizer"}];
+  const roles = [
+    { id: "attendee", name: "Attendee" },
+    { id: "organizer", name: "Organizer" },
+  ];
   const { RangePicker } = DatePicker;
 
   const reservationColumns = [
     {
-      title:"Title",
-      dataIndex: 'title',
-    },
-    { 
-      title: 'Room', 
-      dataIndex: 'room_name', 
-      render: (_,record) => record.room.room_name
-    },
-    
-    { 
-      title: 'Time Range', 
-      render: (_, record) => (
-        <span>
-          {dayjs(record.start).format('MMM D, YYYY HH:mm')} - 
-          {dayjs(record.end).format('MMM D, YYYY HH:mm')}
-        </span>
-      )
+      title: "Title",
+      dataIndex: "title",
     },
     {
-      title: 'Actions',
+      title: "Room",
+      dataIndex: "room_name",
+      render: (_, record) => record.room.room_name,
+    },
+
+    {
+      title: "Time Range",
+      render: (_, record) => (
+        <span>
+          {dayjs(record.start).format("MMM D, YYYY HH:mm")} -
+          {dayjs(record.end).format("MMM D, YYYY HH:mm")}
+        </span>
+      ),
+    },
+    {
+      title: "Actions",
       render: (_, record) => (
         <Space>
           <Button onClick={() => handleEditReservation(record)}>Edit</Button>
-          <Button onClick={() => handleViewParticipants(record.id)}>Participants</Button>
-          <Button danger onClick={() => handleDeleteReservation(record.id)}>Delete</Button>
+          <Button onClick={() => handleViewParticipants(record.id)}>
+            Participants
+          </Button>
+          <Button danger onClick={() => handleDeleteReservation(record.id)}>
+            Delete
+          </Button>
         </Space>
       ),
     },
@@ -61,7 +78,10 @@ export default function ReservationList() {
       const response = await ReservationService.getReservations();
       setReservations(response.data);
     } catch (error) {
-      messageApi.open({type:"error",content:"Failed to load reservations"});
+      messageApi.open({
+        type: "error",
+        content: "Failed to load reservations",
+      });
     }
   };
 
@@ -70,7 +90,7 @@ export default function ReservationList() {
       const response = await RoomService.getRooms();
       setRooms(response.data);
     } catch (error) {
-      messageApi.open({type:"error",content:"Failed to load rooms"});
+      messageApi.open({ type: "error", content: "Failed to load rooms" });
     }
   };
 
@@ -79,7 +99,7 @@ export default function ReservationList() {
       const response = await UserService.getUsers();
       setUsers(response.data);
     } catch (error) {
-      messageApi.open({type:"error",content:"Failed to load users"});
+      messageApi.open({ type: "error", content: "Failed to load users" });
     }
   };
 
@@ -93,17 +113,23 @@ export default function ReservationList() {
 
       if (values.id) {
         await ReservationService.updateReservation(values.id, data);
-        messageApi.open({type:"success",content:"Reservation updated successfully"});
+        messageApi.open({
+          type: "success",
+          content: "Reservation updated successfully",
+        });
       } else {
         await ReservationService.createReservation(data);
-        messageApi.open({type:"success",content:"Reservation created successfully"});;
+        messageApi.open({
+          type: "success",
+          content: "Reservation created successfully",
+        });
       }
-      
+
       loadReservations();
       setIsModalOpen(false);
       form.resetFields();
     } catch (error) {
-      messageApi.open({type:"error",content:"Operation failed"});;
+      messageApi.open({ type: "error", content: "Operation failed" });
     }
   };
 
@@ -111,9 +137,9 @@ export default function ReservationList() {
     form.setFieldsValue({
       ...reservation,
       timeRange: [
-        dayjs(reservation.start_time).add(1,"hour"),
-        dayjs(reservation.end_time).add(2,'hours')
-      ]
+        dayjs(reservation.start_time).add(1, "hour"),
+        dayjs(reservation.end_time).add(2, "hours"),
+      ],
     });
     setIsModalOpen(true);
   };
@@ -121,10 +147,10 @@ export default function ReservationList() {
   const handleDeleteReservation = async (reservationId) => {
     try {
       await ReservationService.deleteReservation(reservationId);
-      messageApi.open({type:"success",content:"Reservation deleted"});;
+      messageApi.open({ type: "success", content: "Reservation deleted" });
       loadReservations();
     } catch (error) {
-      messageApi.open({type:"error",content:"Operation failed"});;
+      messageApi.open({ type: "error", content: "Operation failed" });
     }
   };
 
@@ -134,7 +160,10 @@ export default function ReservationList() {
       setParticipants(response.data);
       setSelectedReservation(reservationId);
     } catch (error) {
-      messageApi.open({type:"error",content:"Failed to load participants"});;
+      messageApi.open({
+        type: "error",
+        content: "Failed to load participants",
+      });
     }
   };
 
@@ -144,32 +173,40 @@ export default function ReservationList() {
         user: values.user,
         reservation: selectedReservation,
         role: values.role,
-        attends: 'pending'
+        attends: "pending",
       });
-      messageApi.open({type:"success",content:"Participant added"});;
+      messageApi.open({ type: "success", content: "Participant added" });
       handleViewParticipants(selectedReservation);
       participantForm.resetFields();
     } catch (error) {
-      messageApi.open({type:"error",content:"Operation failed"});;
+      messageApi.open({ type: "error", content: "Operation failed" });
     }
   };
 
   const handleDeleteParticipant = async (participantId) => {
     try {
-      await ReservationService.deleteParticipant(selectedReservation, participantId);
-      messageApi.open({type:"success",content:"Participant removed successfully"});;
+      await ReservationService.deleteParticipant(
+        selectedReservation,
+        participantId
+      );
+      messageApi.open({
+        type: "success",
+        content: "Participant removed successfully",
+      });
       handleViewParticipants(selectedReservation);
     } catch (error) {
-      messageApi.open({type:"error",content:"Failed to remove participant"});;
+      messageApi.open({
+        type: "error",
+        content: "Failed to remove participant",
+      });
     }
   };
 
   return (
-    
     <div>
       {contextHolder}
-      <Button 
-        type="primary" 
+      <Button
+        type="primary"
         onClick={() => {
           form.resetFields();
           setIsModalOpen(true);
@@ -178,14 +215,16 @@ export default function ReservationList() {
         Create Reservation
       </Button>
 
-      <Table 
-        dataSource={reservations} 
-        columns={reservationColumns} 
+      <Table
+        dataSource={reservations}
+        columns={reservationColumns}
         rowKey="id"
         style={{ marginTop: 24 }}
       />
       <Modal
-        title={form.getFieldValue('id') ? 'Edit Reservation' : 'Create Reservation'}
+        title={
+          form.getFieldValue("id") ? "Edit Reservation" : "Create Reservation"
+        }
         open={isModalOpen}
         onCancel={() => {
           setIsModalOpen(false);
@@ -198,25 +237,17 @@ export default function ReservationList() {
           <Form.Item name="id" hidden>
             <Input />
           </Form.Item>
-          <Form.Item 
-            name="title" 
-            label="Title" 
-            rules={[{ required: true }]}
-          >
+          <Form.Item name="title" label="Title" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          
-          <Form.Item 
-            name="room" 
-            label="Room" 
-            rules={[{ required: true }]}
-          >
+
+          <Form.Item name="room" label="Room" rules={[{ required: true }]}>
             <Select
               showSearch
               optionFilterProp="label"
-              options={rooms.map(room => ({
+              options={rooms.map((room) => ({
                 value: room.id,
-                label: room.room_name
+                label: room.room_name,
               }))}
             />
           </Form.Item>
@@ -229,7 +260,7 @@ export default function ReservationList() {
             <RangePicker
               showTime
               format="YYYY-MM-DD HH:mm"
-              style={{ width: '100%' }}
+              style={{ width: "100%" }}
             />
           </Form.Item>
         </Form>
@@ -242,9 +273,13 @@ export default function ReservationList() {
         footer={null}
         width={800}
       >
-        <Form form={participantForm} onFinish={handleAddParticipant} layout="inline">
-          <Form.Item 
-            name="user" 
+        <Form
+          form={participantForm}
+          onFinish={handleAddParticipant}
+          layout="inline"
+        >
+          <Form.Item
+            name="user"
             label="Add Participant"
             rules={[{ required: true }]}
           >
@@ -253,30 +288,26 @@ export default function ReservationList() {
               style={{ width: 200 }}
               placeholder="Select user"
               optionFilterProp="label"
-              options={users.map(user => ({
+              options={users.map((user) => ({
                 value: user.id,
-                label: user.username
+                label: user.username,
               }))}
             />
           </Form.Item>
 
-          <Form.Item 
-            name="role" 
-            rules={[{ required: false }]}
-          >
-            
+          <Form.Item name="role" rules={[{ required: false }]}>
             <Select
               showSearch
               style={{ width: 200 }}
               placeholder="Select role"
               optionFilterProp="label"
-              options={roles.map(role => ({
+              options={roles.map((role) => ({
                 value: role.id,
-                label: role.name
+                label: role.name,
               }))}
             />
           </Form.Item>
-          
+
           <Button type="primary" htmlType="submit">
             Add Participant
           </Button>
@@ -285,27 +316,27 @@ export default function ReservationList() {
         <Table
           dataSource={participants}
           columns={[
-            { 
-              title: 'Username', 
-              dataIndex: ['user', 'username'] 
-            },
-            { 
-              title: 'Email', 
-              dataIndex: ['user', 'email'] 
+            {
+              title: "Username",
+              dataIndex: ["user", "username"],
             },
             {
-              title:"Role",
-              dataIndex:["role"]
+              title: "Email",
+              dataIndex: ["user", "email"],
+            },
+            {
+              title: "Role",
+              dataIndex: ["role"],
             },
             {
               title: "Status",
-              dataIndex:["attends"]
+              dataIndex: ["attends"],
             },
             {
-              title: 'Actions',
+              title: "Actions",
               render: (_, record) => (
-                <Button 
-                  danger 
+                <Button
+                  danger
                   onClick={() => handleDeleteParticipant(record.id)}
                 >
                   Remove
