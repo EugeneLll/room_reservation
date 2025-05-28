@@ -3,7 +3,7 @@ from reservations import views
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
-router.register(r"", views.ReservationsViewSet, basename="rooms")
+router.register(r"", views.ReservationsViewSet, basename="reservations")
 
 participants_router = DefaultRouter()
 participants_router.register(r"", views.ParticipantsViewSet, basename="participants")
