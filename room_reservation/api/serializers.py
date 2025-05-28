@@ -1,10 +1,28 @@
+from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.utils import timezone
 from rest_framework import serializers
-from rooms.serializers import RoomSerializer
-from users.serializers import UserSerializer
+from rest_framework.authtoken.models import Token
 
-from .models import Participant, Reservation
+from .models import Participant, Reservation, Room
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = ("id", "username", "email", "password")
+        extra_kwargs = {"password": {"write_only": True, "required": True}}
+
+    def create(self, validated_data):
+        user = get_user_model().objects.create_user(**validated_data)
+        Token.objects.create(user=user)
+        return user
+
+
+class RoomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Room
+        fields = ["id", "address", "room_name", "human_capacity"]
 
 
 class ReservationSerializer(serializers.ModelSerializer):

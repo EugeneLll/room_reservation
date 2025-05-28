@@ -34,9 +34,6 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework",
     "rest_framework.authtoken",
-    "rooms",
-    "reservations",
-    "users",
     "api",
 ]
 
