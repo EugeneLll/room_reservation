@@ -1,10 +1,9 @@
+from api.models import Participant, Reservation, Room
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
-
-from .models import Participant, Reservation, Room
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -28,15 +27,8 @@ class RoomSerializer(serializers.ModelSerializer):
 class ReservationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
-        # user = validated_data.pop("user")
         reservation = Reservation(**validated_data)
         reservation.save()
-        # Participant.objects.create(
-        #     reservation=reservation,
-        #     user=user,
-        #     role="organizer",
-        #     attends="accepted",
-        # )
         return reservation
 
     def validate(self, data):
@@ -47,7 +39,7 @@ class ReservationSerializer(serializers.ModelSerializer):
         if timezone.now() > data.get("start"):
             raise serializers.ValidationError({"start": "Start must be after the current time."})
 
-        overlapping = Reservation.objects.filter(room_id=data["room"]).filter(
+        overlapping = Reservation.objects.filter(room_id=data.get("room")).filter(
             Q(start__lt=data.get("end")) & Q(end__gt=data.get("start"))
         )
 

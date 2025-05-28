@@ -1,11 +1,5 @@
-from django.contrib.auth import get_user_model
-from rest_framework import status, viewsets
-from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
-
-from .models import Participant, Reservation, Room
-from .serializers import (
+from api.models import Participant, Reservation, Room
+from api.serializers import (
     ParticipantsListSerializer,
     ParticipantsSerializer,
     ReservationSerializer,
@@ -13,6 +7,11 @@ from .serializers import (
     RoomSerializer,
     UserSerializer,
 )
+from django.contrib.auth import get_user_model
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 
 
 class UsersViewSet(viewsets.ModelViewSet):
@@ -41,15 +40,6 @@ class ReservationsViewSet(viewsets.ModelViewSet):
         if self.action in ["list", "retrieve"]:
             return ReservationsListSerializer
         return ReservationSerializer
-
-    # parts of extended functionality
-    # def create(self, request, *args, **kwargs):
-    #     serializer = ReservationSerializer(data=request.data)
-    #     serializer.is_valid(raise_exception=True)
-    #     reservation = serializer.save(user=request.user)
-    #     serialized_data = ReservationSerializer(instance=reservation)
-
-    #     return Response(serialized_data.data, status=status.HTTP_200_OK)
 
 
 class ParticipantsViewSet(viewsets.ModelViewSet):
