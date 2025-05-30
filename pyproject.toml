@@ -15,7 +15,8 @@ dependencies = [
     "dotenv (>=0.9.9,<0.10.0)",
     "django-redis (>=5.4.0,<6.0.0)",
     "djangorestframework (>=3.16.0,<4.0.0)",
-    "django-cors-headers (>=4.7.0,<5.0.0)"
+    "django-cors-headers (>=4.7.0,<5.0.0)",
+    "djangorestframework-simplejwt (>=5.5.0,<6.0.0)"
 ]
 
 
@@ -38,3 +39,8 @@ mypy_path = "./room_reservation"
 
 [tool.django-stubs]
 django_settings_module = "room_reservation.settings"
+
+[tool.isort]
+profile = "black"
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+known_first_party = ["api"]

@@ -1,9 +1,10 @@
-from api.models import Participant, Reservation, Room
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
+
+from api.models import Amenities, Participant, Reservation, Room
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -12,11 +13,6 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ("id", "username", "email", "password")
         extra_kwargs = {"password": {"write_only": True, "required": True}}
 
-    def create(self, validated_data):
-        user = get_user_model().objects.create_user(**validated_data)
-        Token.objects.create(user=user)
-        return user
-
 
 class RoomSerializer(serializers.ModelSerializer):
     class Meta:
@@ -24,11 +20,24 @@ class RoomSerializer(serializers.ModelSerializer):
         fields = ["id", "address", "room_name", "human_capacity"]
 
 
+class AmenitiesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Amenities
+        fields = ["id", "name", "amount", "room"]
+
+
 class ReservationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
+        user = validated_data.pop("user")
         reservation = Reservation(**validated_data)
         reservation.save()
+        Participant.objects.create(
+            reservation=reservation,
+            user=user,
+            role="organizer",
+            attends="accepted",
+        )
         return reservation
 
     def validate(self, data):

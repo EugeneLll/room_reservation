@@ -13,12 +13,7 @@ export const ReservationService = {
   addParticipant: (reservationId, data) =>
     apiClient.post(`/api/reservations/${reservationId}/participants/`, data),
   updateParticipant: (reservationId, participantId, data) =>
-    apiClient.put(
-      `/api/reservations/${reservationId}/participants/${participantId}/`,
-      data
-    ),
+    apiClient.put(`/api/reservations/${reservationId}/${participantId}/`, data),
   deleteParticipant: (reservationId, participantId) =>
-    apiClient.delete(
-      `/api/reservations/${reservationId}/participants/${participantId}/`
-    ),
+    apiClient.delete(`/api/reservations/${reservationId}/${participantId}/`),
 };
