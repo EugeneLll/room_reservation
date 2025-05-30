@@ -1,7 +1,8 @@
-from api import views
 from django.urls import include, path
 from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework.routers import DefaultRouter
+
+from api import views
 
 users_router = DefaultRouter()
 users_router.register(r"", views.UsersViewSet, basename="users")

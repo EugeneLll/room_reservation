@@ -1,9 +1,10 @@
-from api.models import Participant, Reservation, Room
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
+
+from api.models import Participant, Reservation, Room
 
 
 class UserSerializer(serializers.ModelSerializer):

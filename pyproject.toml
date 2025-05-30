@@ -38,3 +38,8 @@ mypy_path = "./room_reservation"
 
 [tool.django-stubs]
 django_settings_module = "room_reservation.settings"
+
+[tool.isort]
+profile = "black"
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+known_first_party = ["api"]
