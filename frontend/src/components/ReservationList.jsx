@@ -8,12 +8,14 @@ import {
   Space,
   message,
   Select,
+  Tag,
 } from "antd";
 import { useEffect, useState } from "react";
 import { ReservationService } from "../api/ReservationService";
 import { RoomService } from "../api/RoomService";
 import { UserService } from "../api/UserService";
 import dayjs from "dayjs";
+import { useSearchParams } from "react-router-dom";
 
 export default function ReservationList() {
   const [reservations, setReservations] = useState([]);
@@ -30,23 +32,88 @@ export default function ReservationList() {
     { id: "organizer", name: "Organizer" },
   ];
   const { RangePicker } = DatePicker;
+  const [searchParams] = useSearchParams({ room: "", status: "upcoming" });
+
+  const handleRoomChange = (value) => {
+    searchParams.set("room", value || "");
+
+    loadReservations();
+  };
+
+  const handleStatusChange = (value) => {
+    searchParams.set("status", value);
+    loadReservations();
+  };
+
+  const clearFilters = () => {
+    searchParams.set("room", "");
+    searchParams.set("status", "upcoming");
+    loadReservations();
+  };
+
+  const renderFilters = () => (
+    <div
+      style={{ marginBottom: 16, display: "flex", gap: 8, flexWrap: "wrap" }}
+    >
+      <Select
+        placeholder="Filter by room"
+        style={{ width: 200 }}
+        onChange={handleRoomChange}
+        value={
+          searchParams.get("room") === "" ? undefined : searchParams.get("room")
+        }
+        allowClear
+      >
+        {rooms.map((room) => (
+          <Select.Option key={room.id} value={room.id}>
+            {room.room_name}
+          </Select.Option>
+        ))}
+      </Select>
+
+      <Select
+        placeholder="Filter by status"
+        style={{ width: 150 }}
+        onChange={handleStatusChange}
+        value={searchParams.get("status")}
+      >
+        <Select.Option value="all">All</Select.Option>
+        <Select.Option value="upcoming">Upcoming</Select.Option>
+      </Select>
+
+      <Button onClick={clearFilters}>Clear Filters</Button>
+    </div>
+  );
 
   const reservationColumns = [
+    {
+      title: "Status",
+      render: (_, record) => {
+        const start = dayjs(record.start);
+        const end = dayjs(record.end);
+        const now = dayjs();
+
+        if (start.isAfter(now)) {
+          return <Tag color="green">Upcoming</Tag>;
+        } else if (end.isAfter(now)) {
+          return <Tag color="yellow">Ongoing</Tag>;
+        }
+        return <Tag>Completed</Tag>;
+      },
+    },
     {
       title: "Title",
       dataIndex: "title",
     },
     {
       title: "Room",
-      dataIndex: "room_name",
-      render: (_, record) => record.room.room_name,
+      render: (_, record) => record.room?.room_name,
     },
-
     {
       title: "Time Range",
       render: (_, record) => (
         <span>
-          {dayjs(record.start).format("MMM D, YYYY HH:mm")} -
+          {dayjs(record.start).format("MMM D, YYYY HH:mm")} -{" "}
           {dayjs(record.end).format("MMM D, YYYY HH:mm")}
         </span>
       ),
@@ -75,7 +142,13 @@ export default function ReservationList() {
 
   const loadReservations = async () => {
     try {
-      const response = await ReservationService.getReservations();
+      const room = searchParams.get("room");
+      const status = searchParams.get("status") || "upcoming";
+      const params = { status: status };
+      if (room !== "") {
+        params.room = room;
+      }
+      const response = await ReservationService.getReservations(params);
       setReservations(response.data);
     } catch (error) {
       messageApi.open({
@@ -106,7 +179,8 @@ export default function ReservationList() {
   const handleSubmitReservation = async (values) => {
     try {
       const data = {
-        ...values,
+        title: values.title,
+        room: values.room,
         start: values.timeRange[0].toISOString(),
         end: values.timeRange[1].toISOString(),
       };
@@ -137,8 +211,8 @@ export default function ReservationList() {
     form.setFieldsValue({
       ...reservation,
       timeRange: [
-        dayjs(reservation.start_time).add(1, "hour"),
-        dayjs(reservation.end_time).add(2, "hours"),
+        dayjs(reservation.start).add(1, "hour"),
+        dayjs(reservation.end).add(2, "hours"),
       ],
     });
     setIsModalOpen(true);
@@ -205,12 +279,15 @@ export default function ReservationList() {
   return (
     <div>
       {contextHolder}
+      {renderFilters()}
+
       <Button
         type="primary"
         onClick={() => {
           form.resetFields();
           setIsModalOpen(true);
         }}
+        style={{ marginBottom: 16 }}
       >
         Create Reservation
       </Button>

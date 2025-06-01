@@ -5,6 +5,7 @@ import RoomAmenities from "./RoomAmenities";
 import { Link } from "react-router-dom";
 
 export default function RoomList() {
+  const [messageApi, contextHolder] = message.useMessage();
   const [rooms, setRooms] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -45,7 +46,7 @@ export default function RoomList() {
       const response = await RoomService.getRooms();
       setRooms(response.data);
     } catch (error) {
-      message.error("Failed to load rooms");
+      messageApi.error("Failed to load rooms");
     } finally {
       setLoading(false);
     }
@@ -55,16 +56,16 @@ export default function RoomList() {
     try {
       if (values.id) {
         await RoomService.updateRoom(values.id, values);
-        message.success("Room updated successfully");
+        messageApi.success("Room updated successfully");
       } else {
         await RoomService.createRoom(values);
-        message.success("Room created successfully");
+        messageApi.success("Room created successfully");
       }
       loadRooms();
       setIsModalOpen(false);
       form.resetFields();
     } catch (error) {
-      message.error("Operation failed");
+      messageApi.error("Operation failed");
     }
   };
 
@@ -76,15 +77,16 @@ export default function RoomList() {
   const handleDelete = async (roomId) => {
     try {
       await RoomService.deleteRoom(roomId);
-      message.success("Room deleted");
+      messageApi.success("Room deleted");
       loadRooms();
     } catch (error) {
-      message.error("Delete failed");
+      messageApi.error("Delete failed");
     }
   };
 
   return (
     <div>
+      {contextHolder}
       <Button
         type="primary"
         onClick={() => {

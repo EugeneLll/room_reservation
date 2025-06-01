@@ -6,9 +6,6 @@ export const RoomService = {
   updateRoom: (roomId, data) => apiClient.put(`/api/rooms/${roomId}/`, data),
   deleteRoom: (roomId) => apiClient.delete(`/api/rooms/${roomId}/`),
 
-  getRoomReservations: (roomId) =>
-    apiClient.get(`/api/rooms/${roomId}/reservations/`),
-
   getRoomAmenities: (roomId) =>
     apiClient.get(`/api/rooms/${roomId}/amenities/`),
   createAmenity: (roomId, data) =>

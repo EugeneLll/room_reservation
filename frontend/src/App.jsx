@@ -123,7 +123,10 @@ export default function App() {
               }
             />
 
-            <Route path="/" element={<Navigate to="/rooms" replace />} />
+            <Route
+              path="/"
+              element={<Navigate to="/my-reservations" replace />}
+            />
           </Routes>
         </Content>
       </Layout>

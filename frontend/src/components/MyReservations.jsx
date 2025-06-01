@@ -1,10 +1,11 @@
-import { Table, Button, Space, Spin } from "antd";
+import { Table, Button, Space, Spin, message } from "antd";
 import { useState, useEffect } from "react";
 import { UserService } from "../api/UserService";
 import { useAuth } from "../context/AuthContext";
 import dayjs from "dayjs";
 
 export default function MyReservations() {
+  const [messageApi, contextHolder] = message.useMessage();
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
@@ -42,7 +43,7 @@ export default function MyReservations() {
       const response = await UserService.getUserReservations();
       setReservations(response.data);
     } catch (error) {
-      message.error("Failed to load your reservations");
+      messageApi.error("Failed to load your reservations");
     } finally {
       setLoading(false);
     }
@@ -50,6 +51,7 @@ export default function MyReservations() {
 
   return (
     <div>
+      {contextHolder}
       <h1>My Reservations</h1>
       <Spin spinning={loading}>
         <Table dataSource={reservations} columns={columns} rowKey="id" />

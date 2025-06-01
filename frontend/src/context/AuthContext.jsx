@@ -18,13 +18,7 @@ export const AuthProvider = ({ children }) => {
         }
 
         const response = await apiClient.get("/api/users/me/");
-        setUser({
-          ...response.data,
-          name:
-            `${response.data.first_name || ""} ${
-              response.data.last_name || ""
-            }`.trim() || response.data.username,
-        });
+        setUser(response.data);
       } catch (error) {
         console.error("Failed to fetch user", error);
       } finally {
@@ -43,20 +37,7 @@ export const AuthProvider = ({ children }) => {
       Cookies.set("refresh_token", response.data.refresh);
 
       const userResponse = await apiClient.get("/api/users/me/");
-      const userData = {
-        ...userResponse.data,
-        name:
-          `${userResponse.data.first_name || ""} ${
-            userResponse.data.last_name || ""
-          }`.trim() || userResponse.data.username,
-      };
-
-      setUser(userData);
-
-      navigate(location.state?.from?.pathname || "/reservations", {
-        replace: true,
-      });
-
+      setUser(userResponse.data);
       return true;
     } catch (error) {
       console.error("Login failed", error);
@@ -70,9 +51,6 @@ export const AuthProvider = ({ children }) => {
         username: userData.username,
         email: userData.email,
         password: userData.password,
-      });
-      navigate(location.state?.from?.pathname || "/login", {
-        replace: true,
       });
       return true;
     } catch (error) {

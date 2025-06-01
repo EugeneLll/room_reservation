@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Button, Form, Input, message } from "antd";
 import { useAuth } from "../context/AuthContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function SignupForm() {
+  const navigate = useNavigate();
+  const [messageApi, contextHolder] = message.useMessage();
   const { signup } = useAuth();
   const [loading, setLoading] = useState(false);
 
@@ -17,16 +19,18 @@ export default function SignupForm() {
       lastName: values.lastName,
     });
     setLoading(false);
+    navigate("/login");
 
     if (success) {
-      message.success("Account created successfully. Please login.");
+      messageApi.success("Account created successfully. Please login.");
     } else {
-      message.error("Signup failed. Please try again.");
+      messageApi.error("Signup failed. Please try again.");
     }
   };
 
   return (
     <div style={{ maxWidth: 400, margin: "0 auto" }}>
+      {contextHolder}
       <h2 style={{ textAlign: "center", marginBottom: 24 }}>Sign Up</h2>
       <Form name="signup" onFinish={onFinish} layout="vertical">
         <Form.Item

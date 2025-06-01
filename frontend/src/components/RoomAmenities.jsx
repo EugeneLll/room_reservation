@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { RoomService } from "../api/RoomService";
 
 export default function RoomAmenities({ roomId }) {
+  const [messageApi, contextHolder] = message.useMessage();
   const [amenities, setAmenities] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -35,7 +36,7 @@ export default function RoomAmenities({ roomId }) {
       const response = await RoomService.getRoomAmenities(roomId);
       setAmenities(response.data);
     } catch (error) {
-      message.error("Failed to load amenities");
+      messageApi.error("Failed to load amenities");
     } finally {
       setLoading(false);
     }
@@ -49,20 +50,20 @@ export default function RoomAmenities({ roomId }) {
           amount: values.amount,
           name: values.name,
         });
-        message.success("Amenity updated successfully");
+        messageApi.success("Amenity updated successfully");
       } else {
         await RoomService.createAmenity(roomId, {
           room: roomId,
           amount: values.amount,
           name: values.name,
         });
-        message.success("Amenity created successfully");
+        messageApi.success("Amenity created successfully");
       }
       loadAmenities();
       setIsModalOpen(false);
       form.resetFields();
     } catch (error) {
-      message.error("Operation failed");
+      messageApi.error("Operation failed");
     }
   };
 
@@ -74,15 +75,16 @@ export default function RoomAmenities({ roomId }) {
   const handleDelete = async (amenityId) => {
     try {
       await RoomService.deleteAmenity(roomId, amenityId);
-      message.success("Amenity deleted");
+      messageApi.success("Amenity deleted");
       loadAmenities();
     } catch (error) {
-      message.error("Delete failed");
+      messageApi.error("Delete failed");
     }
   };
 
   return (
     <div style={{ marginTop: 24 }}>
+      {contextHolder}
       <Button
         type="primary"
         onClick={() => {

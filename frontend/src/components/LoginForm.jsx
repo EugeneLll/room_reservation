@@ -2,10 +2,13 @@ import { useState } from "react";
 import { Button, Form, Input, message } from "antd";
 import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function LoginForm() {
+  const navigate = useNavigate();
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage();
 
   const onFinish = async (values) => {
     setLoading(true);
@@ -14,16 +17,17 @@ export default function LoginForm() {
       password: values.password,
     });
     setLoading(false);
-
+    navigate("/my-reservations");
     if (success) {
-      message.success("Logged in successfully");
+      messageApi.success("Logged in successfully");
     } else {
-      message.error("Login failed. Please check your credentials.");
+      messageApi.error("Login failed. Please check your credentials.");
     }
   };
 
   return (
     <div style={{ maxWidth: 400, margin: "0 auto" }}>
+      {contextHolder}
       <h2 style={{ textAlign: "center", marginBottom: 24 }}>Login</h2>
       <Form
         name="login"

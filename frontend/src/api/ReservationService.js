@@ -1,7 +1,8 @@
 import apiClient from "./client";
 
 export const ReservationService = {
-  getReservations: () => apiClient.get("/api/reservations/"),
+  getReservations: (params = {}) =>
+    apiClient.get("/api/reservations/", { params }),
   createReservation: (data) => apiClient.post("/api/reservations/", data),
   updateReservation: (reservationId, data) =>
     apiClient.put(`/api/reservations/${reservationId}/`, data),
