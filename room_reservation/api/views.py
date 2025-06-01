@@ -21,7 +21,7 @@ class SplitDetailListSerializerViewSetMixin:
     detail_serialzier: Serializer | None = None
 
     def get_serializer_class(self):
-        if self.action in ["list", "retrieve"] and self.list_serializer is not None:
+        if self.action == "list" and self.list_serializer is not None:
             return self.list_serializer
         elif self.detail_serialzier is not None:
             return self.detail_serialzier
