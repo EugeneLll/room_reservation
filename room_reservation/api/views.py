@@ -24,7 +24,7 @@ class SplitDetailListSerializerViewSetMixin:
     detail_serialzier: Serializer | None = None
 
     def get_serializer_class(self):
-        if self.action in ["list", "retrieve"] and self.list_serializer is not None:
+        if self.action == "list" and self.list_serializer is not None:
             return self.list_serializer
         elif self.detail_serialzier is not None:
             return self.detail_serialzier
@@ -60,12 +60,6 @@ class RoomsViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = RoomSerializer
 
-    @action(detail=True)
-    def reservations(self, request, pk):
-        query = Reservation.objects.filter(room_id=pk).filter(start__gt=timezone.now())
-        serializer = ReservationSerializer(instance=query, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 class AmenitiesViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
@@ -77,10 +71,20 @@ class AmenitiesViewSet(viewsets.ModelViewSet):
 
 
 class ReservationsViewSet(SplitDetailListSerializerViewSetMixin, viewsets.ModelViewSet):
-    queryset = Reservation.objects.all()
     permission_classes = [IsAuthenticated]
     list_serializer = ReservationsListSerializer
     detail_serialzier = ReservationSerializer
+
+    def get_queryset(self):
+        queryset = Reservation.objects.all()
+        room = self.request.query_params.get("room")
+        status = self.request.query_params.get("status")
+
+        if room:
+            queryset = queryset.filter(room__id=room)
+        if status == "upcoming":
+            queryset = queryset.filter(start__gte=timezone.now())
+        return queryset
 
     def create(self, request):
         serializer = ReservationSerializer(data=request.data)

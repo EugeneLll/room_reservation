@@ -53,7 +53,7 @@ class ReservationSerializer(serializers.ModelSerializer):
         )
 
         if self.instance:
-            overlapping.exclude(id=self.instance.id)
+            overlapping = overlapping.exclude(id=self.instance.id)
 
         if overlapping.exists():
             raise serializers.ValidationError({"room": "This room is already reserved for this time"})
