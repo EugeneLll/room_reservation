@@ -4,7 +4,7 @@ echo "Making migrations"
 
 python manage.py migrate
 
-echo "Creationg superuser"
+echo "Creating superuser"
 
 python create_superuser.py
 
