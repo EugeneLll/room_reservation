@@ -17,7 +17,7 @@ import {
   RoomList,
   SignupForm,
   UserList,
-} from "./components/index";
+} from "./components";
 
 const { Header, Content } = Layout;
 
