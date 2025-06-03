@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import { ReservationService } from "../api/ReservationService";
 import { RoomService } from "../api/RoomService";
 import { UserService } from "../api/UserService";
+import ReservationFilters from "./ReservationFilters";
 import dayjs from "dayjs";
 import { useSearchParams } from "react-router-dom";
 
@@ -33,57 +34,6 @@ export default function ReservationList() {
   ];
   const { RangePicker } = DatePicker;
   const [searchParams] = useSearchParams({ room: "", status: "upcoming" });
-
-  const handleRoomChange = (value) => {
-    searchParams.set("room", value || "");
-
-    loadReservations();
-  };
-
-  const handleStatusChange = (value) => {
-    searchParams.set("status", value);
-    loadReservations();
-  };
-
-  const clearFilters = () => {
-    searchParams.set("room", "");
-    searchParams.set("status", "upcoming");
-    loadReservations();
-  };
-
-  const renderFilters = () => (
-    <div
-      style={{ marginBottom: 16, display: "flex", gap: 8, flexWrap: "wrap" }}
-    >
-      <Select
-        placeholder="Filter by room"
-        style={{ width: 200 }}
-        onChange={handleRoomChange}
-        value={
-          searchParams.get("room") === "" ? undefined : searchParams.get("room")
-        }
-        allowClear
-      >
-        {rooms.map((room) => (
-          <Select.Option key={room.id} value={room.id}>
-            {room.room_name}
-          </Select.Option>
-        ))}
-      </Select>
-
-      <Select
-        placeholder="Filter by status"
-        style={{ width: 150 }}
-        onChange={handleStatusChange}
-        value={searchParams.get("status")}
-      >
-        <Select.Option value="all">All</Select.Option>
-        <Select.Option value="upcoming">Upcoming</Select.Option>
-      </Select>
-
-      <Button onClick={clearFilters}>Clear Filters</Button>
-    </div>
-  );
 
   const reservationColumns = [
     {
@@ -279,7 +229,11 @@ export default function ReservationList() {
   return (
     <div>
       {contextHolder}
-      {renderFilters()}
+      <ReservationFilters
+        rooms={rooms}
+        searchParams={searchParams}
+        onFilterChange={loadReservations}
+      />
 
       <Button
         type="primary"

@@ -8,14 +8,16 @@ import {
 import { Layout, Menu, Button, Dropdown, Space, Avatar } from "antd";
 import { LogoutOutlined, UserOutlined } from "@ant-design/icons";
 import { useAuth } from "./context/AuthContext";
-import ProtectedRoute from "./components/ProtectedRoute";
-import RoomList from "./components/RoomList";
-import ReservationList from "./components/ReservationList";
-import UserList from "./components/UserList";
-import LoginForm from "./components/LoginForm";
-import SignupForm from "./components/SignupForm";
-import Profile from "./components/Profile";
-import MyReservations from "./components/MyReservations";
+import {
+  LoginForm,
+  MyReservations,
+  Profile,
+  ProtectedRoute,
+  ReservationList,
+  RoomList,
+  SignupForm,
+  UserList,
+} from "./components/index";
 
 const { Header, Content } = Layout;
 
