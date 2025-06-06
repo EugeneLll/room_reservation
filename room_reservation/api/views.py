@@ -41,18 +41,27 @@ class UsersViewSet(viewsets.ModelViewSet):
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response({"message": "User created"}, status=status.HTTP_201_CREATED)
+        return Response(
+            {"message": "User created"},
+            status=status.HTTP_201_CREATED,
+        )
 
     @action(detail=False)
     def me(self, request):
         serializer = UserSerializer(instance=request.user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK,
+        )
 
     @action(detail=False)
     def reservations(self, request):
         queryset = Reservation.objects.filter(Q(start__gt=timezone.now()) & Q(participant__user=request.user))
         serializer = ReservationsListSerializer(instance=queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK,
+        )
 
 
 class RoomsViewSet(viewsets.ModelViewSet):
@@ -66,8 +75,8 @@ class AmenitiesViewSet(viewsets.ModelViewSet):
     serializer_class = AmenitiesSerializer
 
     def get_queryset(self):
-        pk = self.kwargs.get("room_id")
-        return Amenities.objects.filter(room_id=pk)
+        room_id = self.kwargs.get("room_id")
+        return Amenities.objects.filter(room_id=room_id)
 
 
 class ReservationsViewSet(SplitDetailListSerializerViewSetMixin, viewsets.ModelViewSet):
@@ -92,7 +101,10 @@ class ReservationsViewSet(SplitDetailListSerializerViewSetMixin, viewsets.ModelV
         reservation = serializer.save(user=request.user)
         serialized_data = ReservationSerializer(instance=reservation)
 
-        return Response(serialized_data.data, status=status.HTTP_200_OK)
+        return Response(
+            serialized_data.data,
+            status=status.HTTP_200_OK,
+        )
 
 
 class ParticipantsViewSet(SplitDetailListSerializerViewSetMixin, viewsets.ModelViewSet):
@@ -101,5 +113,5 @@ class ParticipantsViewSet(SplitDetailListSerializerViewSetMixin, viewsets.ModelV
     detail_serialzier = ParticipantsSerializer
 
     def get_queryset(self):
-        pk = self.kwargs.get("reservation_id")
-        return Participant.objects.filter(reservation_id=pk)
+        reservation_id = self.kwargs.get("reservation_id")
+        return Participant.objects.filter(reservation_id=reservation_id)
