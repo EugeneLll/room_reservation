@@ -19,10 +19,10 @@ export default function SignupForm() {
       lastName: values.lastName,
     });
     setLoading(false);
-    navigate("/login");
 
     if (success) {
       messageApi.success("Account created successfully. Please login.");
+      setTimeout(() => navigate("/login"), 1500);
     } else {
       messageApi.error("Signup failed. Please try again.");
     }

@@ -107,6 +107,19 @@ export default function RoomList() {
           expandedRowRender: (record) => <RoomAmenities roomId={record.id} />,
           rowExpandable: (record) => record.id !== undefined,
         }}
+        locale={{
+          emptyText: (
+            <div
+              style={{
+                padding: 40,
+                background: "#fafafa",
+                textAlign: "center",
+              }}
+            >
+              No rooms
+            </div>
+          ),
+        }}
       />
 
       <Modal

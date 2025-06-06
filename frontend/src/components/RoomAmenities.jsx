@@ -102,6 +102,19 @@ export default function RoomAmenities({ roomId }) {
         rowKey="id"
         loading={loading}
         pagination={false}
+        locale={{
+          emptyText: (
+            <div
+              style={{
+                padding: 40,
+                background: "#fafafa",
+                textAlign: "center",
+              }}
+            >
+              No amenities for this room
+            </div>
+          ),
+        }}
       />
 
       <Modal

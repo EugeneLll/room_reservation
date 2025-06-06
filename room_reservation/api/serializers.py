@@ -13,6 +13,14 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ("id", "username", "email", "password")
         extra_kwargs = {"password": {"write_only": True, "required": True}}
 
+    def create(self, validated_data):
+        user = get_user_model().objects.create_user(
+            username=validated_data["username"],
+            email=validated_data["email"],
+            password=validated_data["password"],
+        )
+        return user
+
 
 class RoomSerializer(serializers.ModelSerializer):
     class Meta:

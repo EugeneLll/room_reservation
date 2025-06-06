@@ -54,7 +54,24 @@ export default function MyReservations() {
       {contextHolder}
       <h1>My Reservations</h1>
       <Spin spinning={loading}>
-        <Table dataSource={reservations} columns={columns} rowKey="id" />
+        <Table
+          dataSource={reservations}
+          columns={columns}
+          rowKey="id"
+          locale={{
+            emptyText: (
+              <div
+                style={{
+                  padding: 40,
+                  background: "#fafafa",
+                  textAlign: "center",
+                }}
+              >
+                No reservations for current user
+              </div>
+            ),
+          }}
+        />
       </Spin>
     </div>
   );

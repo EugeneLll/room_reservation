@@ -251,6 +251,19 @@ export default function ReservationList() {
         columns={reservationColumns}
         rowKey="id"
         style={{ marginTop: 24 }}
+        locale={{
+          emptyText: (
+            <div
+              style={{
+                padding: 40,
+                background: "#fafafa",
+                textAlign: "center",
+              }}
+            >
+              No reservations
+            </div>
+          ),
+        }}
       />
       <Modal
         title={
@@ -377,6 +390,19 @@ export default function ReservationList() {
           ]}
           style={{ marginTop: 16 }}
           rowKey="id"
+          locale={{
+            emptyText: (
+              <div
+                style={{
+                  padding: 40,
+                  background: "#fafafa",
+                  textAlign: "center",
+                }}
+              >
+                No participants for this reservation
+              </div>
+            ),
+          }}
         />
       </Modal>
     </div>
