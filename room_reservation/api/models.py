@@ -33,8 +33,10 @@ class Reservation(models.Model):
     start = models.DateTimeField()
     end = models.DateTimeField()
     title = models.CharField(max_length=255, null=True, blank=True)
+    is_cancelled = models.BooleanField(default=False)
 
     def __str__(self):
+
         return f"{self.title} in room: {self.room} starts: {self.start} ends: {self.end}"
 
     class Meta:
