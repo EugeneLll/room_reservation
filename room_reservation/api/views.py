@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.utils import timezone
-from rest_framework import status, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -73,7 +73,9 @@ class UsersViewSet(viewsets.ModelViewSet):
 
     @action(detail=False)
     def reservations(self, request):
-        queryset = Reservation.objects.filter(Q(start__gt=timezone.now()) & Q(participant__user=request.user))
+        queryset = Reservation.objects.filter(
+            Q(start__gt=timezone.now()) & Q(participant__user=request.user) & Q(is_cancelled=False)
+        )
         serializer = ReservationsListSerializer(instance=queryset, many=True)
         return Response(
             serializer.data,
@@ -96,7 +98,14 @@ class AmenitiesViewSet(viewsets.ModelViewSet):
         return Amenities.objects.filter(room_id=room_id)
 
 
-class ReservationsViewSet(SplitDetailListSerializerViewSetMixin, viewsets.ModelViewSet):
+class ReservationsViewSet(
+    SplitDetailListSerializerViewSetMixin,
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
     permission_classes = [IsAuthenticated]
     list_serializer = ReservationsListSerializer
     detail_serialzier = ReservationSerializer
@@ -109,7 +118,7 @@ class ReservationsViewSet(SplitDetailListSerializerViewSetMixin, viewsets.ModelV
         if room:
             queryset = queryset.filter(room__id=room)
         if status == "upcoming":
-            queryset = queryset.filter(start__gte=timezone.now())
+            queryset = queryset.filter(Q(start__gte=timezone.now()) & Q(is_cancelled=False))
         return queryset
 
     def create(self, request):
@@ -120,6 +129,31 @@ class ReservationsViewSet(SplitDetailListSerializerViewSetMixin, viewsets.ModelV
 
         return Response(
             serialized_data,
+            status=status.HTTP_200_OK,
+        )
+
+    @action(methods=["PATCH"], detail=True)
+    def cancel(self, request, pk=None):
+        reservation = self.get_object()
+
+        if reservation.is_cancelled:
+            return Response(
+                {"error": "Reservation is already cancelled"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if reservation.start <= timezone.now():
+            return Response(
+                {"error": "Cannot cancel a reservation that has already started"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        reservation.is_cancelled = True
+        reservation.save()
+
+        serializer = self.get_serializer(reservation)
+        return Response(
+            {"message": "Reservation cancelled successfully", "data": serializer.data},
             status=status.HTTP_200_OK,
         )
 
