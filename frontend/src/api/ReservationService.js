@@ -7,14 +7,24 @@ export const ReservationService = {
   updateReservation: (reservationId, data) =>
     apiClient.put(`/api/reservations/${reservationId}/`, data),
   deleteReservation: (reservationId) =>
-    apiClient.delete(`/api/reservations/${reservationId}/`),
+    apiClient.patch(`/api/reservations/${reservationId}/cancel/`),
 
   getParticipants: (reservationId) =>
     apiClient.get(`/api/reservations/${reservationId}/participants/`),
   addParticipant: (reservationId, data) =>
     apiClient.post(`/api/reservations/${reservationId}/participants/`, data),
   updateParticipant: (reservationId, participantId, data) =>
-    apiClient.put(`/api/reservations/${reservationId}/${participantId}/`, data),
+    apiClient.put(
+      `/api/reservations/${reservationId}/participants/${participantId}/`,
+      data
+    ),
   deleteParticipant: (reservationId, participantId) =>
-    apiClient.delete(`/api/reservations/${reservationId}/${participantId}/`),
+    apiClient.delete(
+      `/api/reservations/${reservationId}/participants/${participantId}/`
+    ),
+  modifyAttendance: (reservationId, participantId, data) =>
+    apiClient.patch(
+      `/api/reservations/${reservationId}/participants/${participantId}/change_status/`,
+      data
+    ),
 };

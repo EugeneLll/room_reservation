@@ -17,9 +17,7 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use((config) => {
   const token = Cookies.get("access_token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
@@ -27,37 +25,41 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const isTokenEndpoint = originalRequest.url.includes("/api/token/");
 
+    // Handle 401 errors (excluding token endpoints)
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
-      !originalRequest.url.includes("/api/token/")
+      !isTokenEndpoint
     ) {
       originalRequest._retry = true;
 
       try {
         const refreshToken = Cookies.get("refresh_token");
-        console.log(refresh);
-        if (!refreshToken) throw new Error("No refresh token");
+        if (!refreshToken) throw new Error("Missing refresh token");
 
-        const response = await refreshClient.post("/api/token/refresh/", {
+        const { data } = await refreshClient.post("/api/token/refresh/", {
           refresh: refreshToken,
         });
 
-        Cookies.set("access_token", response.data.access);
-        Cookies.set("refresh_token", response.data.refresh);
+        // Update tokens in cookies
+        Cookies.set("access_token", data.access);
+        if (data.refresh) {
+          // Optional: handle refresh token rotation
+          Cookies.set("refresh_token", data.refresh);
+        }
 
-        originalRequest.headers.Authorization = `Bearer ${response.data.access}`;
+        // Update original request header
+        originalRequest.headers.Authorization = `Bearer ${data.access}`;
 
+        // Retry original request with new token
         return apiClient(originalRequest);
       } catch (refreshError) {
+        // Clear tokens and handle logout
         Cookies.remove("access_token");
         Cookies.remove("refresh_token");
-
-        if (!window.location.pathname.includes("login")) {
-          window.location.href = "/login";
-        }
-        return Promise.reject(refreshError);
+        return Promise.reject(new Error("Session expired. Please login again"));
       }
     }
 
