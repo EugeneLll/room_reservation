@@ -143,7 +143,6 @@ export default function ReservationList() {
       if (!room) {
         return { disabledHours: () => [], disabledMinutes: () => [] };
       }
-
       const slots = room.occupied_time
         .map((slot) => ({
           start: dayjs(slot.start),
@@ -206,6 +205,44 @@ export default function ReservationList() {
         }
         return hours;
       };
+
+      if (type === "end") {
+        const startTime = form.getFieldValue("startTime");
+
+        return {
+          disabledHours: () => {
+            if (!startTime) return Array.from({ length: 24 }, (_, i) => i);
+
+            const hours = [];
+            for (let h = 0; h < 24; h++) {
+              if (h < startTime.hour()) {
+                hours.push(h);
+              }
+            }
+            return hours;
+          },
+          disabledMinutes: (selectedHour) => {
+            if (!startTime) return Array.from({ length: 60 }, (_, i) => i);
+
+            const minutes = [];
+            for (let m = 0; m < 60; m += 15) {
+              const time = date.hour(selectedHour).minute(m).second(0);
+
+              if (
+                selectedHour === startTime.hour() &&
+                m <= startTime.minute()
+              ) {
+                minutes.push(m);
+              }
+
+              if (isTimeDisabled(time)) {
+                minutes.push(m);
+              }
+            }
+            return minutes;
+          },
+        };
+      }
 
       return {
         disabledHours,
