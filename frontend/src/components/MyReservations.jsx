@@ -1,6 +1,7 @@
-import { Table, Button, Space, Spin, message } from "antd";
+import { Table, Tag, Spin, message, Button, Space } from "antd";
 import { useState, useEffect } from "react";
 import { UserService } from "../api/UserService";
+import { ReservationService } from "../api/ReservationService";
 import { useAuth } from "../context/AuthContext";
 import dayjs from "dayjs";
 
@@ -13,21 +14,51 @@ export default function MyReservations() {
   const columns = [
     {
       title: "Title",
-      dataIndex: "title",
+      render: (_, record) => record.reservation.title,
     },
     {
       title: "Room",
-      dataIndex: "room",
-      render: (room) => room.room_name,
+      render: (_, record) => record.reservation.room.room_name,
     },
     {
       title: "Time",
       render: (_, record) => (
         <span>
-          {dayjs(record.start).format("MMM D, YYYY HH:mm")} -
-          {dayjs(record.end).format("MMM D, YYYY HH:mm")}
+          {dayjs(record.reservation.start).format("MMM D, YYYY HH:mm")} -
+          {dayjs(record.reservation.end).format("MMM D, YYYY HH:mm")}
         </span>
       ),
+    },
+    {
+      title: "Attendance",
+      render: (_, record) => {
+        const attendance = record.participant.attends;
+        if (attendance === "accepted") {
+          return <Tag color="green">Accepted</Tag>;
+        } else if (attendance === "declined") {
+          return <Tag color="red">Declined</Tag>;
+        }
+        return (
+          <Space>
+            <Button
+              danger
+              onClick={() =>
+                handleDecline(record.reservation.id, record.participant.id)
+              }
+            >
+              Decline
+            </Button>
+            <Button
+              primary
+              onClick={() =>
+                handleAccept(record.reservation.id, record.participant.id)
+              }
+            >
+              Accept
+            </Button>
+          </Space>
+        );
+      },
     },
   ];
 
@@ -46,6 +77,30 @@ export default function MyReservations() {
       messageApi.error("Failed to load your reservations");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDecline = async (reservationID, participantID) => {
+    try {
+      ReservationService.modifyAttendance(reservationID, participantID, {
+        status: "declined",
+      });
+      messageApi.success("Attendance status modified");
+      loadReservations();
+    } catch (error) {
+      messageApi.error("Modification failed");
+    }
+  };
+
+  const handleAccept = async (reservationID, participantID) => {
+    try {
+      ReservationService.modifyAttendance(reservationID, participantID, {
+        status: "accepted",
+      });
+      messageApi.success("Attendance status modified");
+      loadReservations();
+    } catch (error) {
+      messageApi.error("Modification failed");
     }
   };
 

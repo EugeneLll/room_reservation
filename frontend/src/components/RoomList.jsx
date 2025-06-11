@@ -154,7 +154,7 @@ export default function RoomList() {
 
           <Form.Item
             label="Capacity"
-            name="capacity"
+            name="human_capacity"
             rules={[{ required: true, message: "Please enter room capacity" }]}
           >
             <Input type="number" min={1} />
