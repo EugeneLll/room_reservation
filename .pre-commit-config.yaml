@@ -23,7 +23,8 @@ repos:
         language: system
         types: [python]
         exclude: migrations/.*|settings.py
-        args: [--ignore=E501, --ignore=F401, --max-line-length=120]
+        args:
+          [--ignore=E501, --ignore=F401, --max-line-length=120, --ignore=W503]
 
       - id: mypy
         name: mypy
