@@ -49,10 +49,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = useCallback(async () => {
-    await apiClient.post("/api/token/logout/", {
-      token: Cookies.get("refresh_token"),
-    });
+  const logout = useCallback(() => {
     Cookies.remove("access_token");
     Cookies.remove("refresh_token");
     setUser(null);
