@@ -614,7 +614,10 @@ export default function ReservationList() {
           form.resetFields();
           setTimeSelection({ date: null, start: null, end: null });
         }}
-        onOk={() => form.submit()}
+        onOk={() => {
+          loadOccupiedRooms();
+          return form.submit();
+        }}
         width={600}
       >
         <Form
