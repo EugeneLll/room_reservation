@@ -59,7 +59,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await apiClient.post("/api/token/logout/", {
+      token: Cookies.remove("refresh_token"),
+    });
     Cookies.remove("access_token");
     Cookies.remove("refresh_token");
     setUser(null);

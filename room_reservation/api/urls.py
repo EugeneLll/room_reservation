@@ -22,6 +22,7 @@ amenities_router.register(r"", views.AmenitiesViewSet, basename="amenities")
 urlpatterns = [
     path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("token/logout/", views.LogoutView.as_view(), name="logout"),
     path("rooms/", include(rooms_router.urls), name="rooms_list"),
     path(
         "rooms/<str:room_id>/amenities/",

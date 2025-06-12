@@ -6,6 +6,9 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
+from rest_framework.views import APIView
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from api.models import Amenities, Participant, Reservation, Room
 from api.serializers import (
@@ -29,6 +32,20 @@ class SplitDetailListSerializerViewSetMixin:
         elif self.detail_serialzier is not None:
             return self.detail_serialzier
         return super().get_serializer_class()
+
+
+class LogoutView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        try:
+            refresh_token = request.data.get("token")
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response(status=status.HTTP_205_RESET_CONTENT)
+        except TokenError as e:
+            print(e)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class UsersViewSet(viewsets.ModelViewSet):
