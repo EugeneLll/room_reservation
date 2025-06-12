@@ -116,10 +116,10 @@ class ReservationsViewSet(SplitDetailListSerializerViewSetMixin, viewsets.ModelV
         serializer = ReservationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         reservation = serializer.save(user=request.user)
-        serialized_data = ReservationSerializer(instance=reservation)
+        serialized_data = ReservationSerializer(instance=reservation).data
 
         return Response(
-            serialized_data.data,
+            serialized_data,
             status=status.HTTP_200_OK,
         )
 
