@@ -179,6 +179,31 @@ class ReservationsViewSet(
             status=status.HTTP_200_OK,
         )
 
+    @action(methods=["PATCH"], detail=True)
+    def cancel(self, request, pk=None):
+        reservation = self.get_object()
+
+        if reservation.is_cancelled:
+            return Response(
+                {"detail": "Reservation is already cancelled"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if reservation.start <= timezone.now():
+            return Response(
+                {"detail": "Cannot cancel a reservation that has already started"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        reservation.is_cancelled = True
+        reservation.save()
+
+        serializer = self.get_serializer(reservation)
+        return Response(
+            {"message": "Reservation cancelled successfully", "data": serializer.data},
+            status=status.HTTP_200_OK,
+        )
+
 
 class ParticipantsViewSet(SplitDetailListSerializerViewSetMixin, viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsParticipantOrganizerOrReadOnly]
