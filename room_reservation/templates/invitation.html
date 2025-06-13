@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Meeting Invitation</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .header {
+        background-color: #f8f9fa;
+        padding: 15px;
+        text-align: center;
+      }
+      .content {
+        padding: 20px;
+        border: 1px solid #dee2e6;
+      }
+      .footer {
+        margin-top: 20px;
+        text-align: center;
+        color: #6c757d;
+      }
+      .btn {
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #28a745;
+        color: white !important;
+        text-decoration: none;
+        border-radius: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h2>Meeting Invitation</h2>
+      </div>
+      <div class="content">
+        <p>Hello {{ participant.username }},</p>
+        <p>
+          You've been invited to a meeting in
+          <strong>{{ room.room_name }}</strong>.
+        </p>
+
+        <h3>Meeting Details:</h3>
+        <ul>
+          <li><strong>Title:</strong> {{ reservation.title }}</li>
+          <li><strong>Date:</strong> {{ reservation.start|date:"F j, Y" }}</li>
+          <li><strong>Time:</strong> {{time}}</li>
+          <li><strong>Room:</strong> {{ room.name }}</li>
+          <li><strong>Location:</strong> {{ room.location }}</li>
+        </ul>
+      </div>
+      <div class="footer">
+        <p>&copy; {{ year }}</p>
+      </div>
+    </div>
+  </body>
+</html>
