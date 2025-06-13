@@ -34,6 +34,20 @@ export const AuthProvider = ({ children }) => {
     fetchUser();
   }, [fetchUser]);
 
+  const signup = async (userData) => {
+    try {
+      await apiClient.post("/api/users/signup/", {
+        username: userData.username,
+        email: userData.email,
+        password: userData.password,
+      });
+      return true;
+    } catch (error) {
+      console.error("Signup failed", error.response?.data);
+      return false;
+    }
+  };
+
   const login = async (credentials) => {
     try {
       const response = await apiClient.post("/api/token/", credentials);
@@ -67,6 +81,7 @@ export const AuthProvider = ({ children }) => {
         setOrganizedReservations,
         loading,
         login,
+        signup,
         logout,
         fetchUser,
       }}
