@@ -27,7 +27,6 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config;
     const isTokenEndpoint = originalRequest.url.includes("/api/token/");
 
-    // Handle 401 errors (excluding token endpoints)
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
@@ -43,20 +42,14 @@ apiClient.interceptors.response.use(
           refresh: refreshToken,
         });
 
-        // Update tokens in cookies
         Cookies.set("access_token", data.access);
         if (data.refresh) {
-          // Optional: handle refresh token rotation
           Cookies.set("refresh_token", data.refresh);
         }
 
-        // Update original request header
         originalRequest.headers.Authorization = `Bearer ${data.access}`;
-
-        // Retry original request with new token
         return apiClient(originalRequest);
       } catch (refreshError) {
-        // Clear tokens and handle logout
         Cookies.remove("access_token");
         Cookies.remove("refresh_token");
         return Promise.reject(new Error("Session expired. Please login again"));

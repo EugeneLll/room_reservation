@@ -69,7 +69,14 @@ export default function ReservationList() {
     },
     {
       title: "Title",
-      dataIndex: "title",
+      render: (_, record) => {
+        let title = record.title;
+        if (record.recovery_date !== null) {
+          const recovered = dayjs(record.recovery_date);
+          title += " Recovered on " + recovered;
+        }
+        return title;
+      },
     },
     {
       title: "Room",
@@ -95,7 +102,7 @@ export default function ReservationList() {
               </Button>
             </Space>
           );
-        } else {
+        } else if (!record.is_cancelled) {
           return (
             <Space>
               <Button onClick={() => handleEditReservation(record)}>
@@ -110,6 +117,20 @@ export default function ReservationList() {
             </Space>
           );
         }
+        return (
+          <Space>
+            <Button onClick={() => handleViewParticipants(record.id)}>
+              Participants
+            </Button>
+            <Button
+              color="cyan"
+              variant="outlined"
+              onClick={() => handleRestoreReservation(record.id)}
+            >
+              Restore
+            </Button>
+          </Space>
+        );
       },
     },
   ];
@@ -358,6 +379,10 @@ export default function ReservationList() {
         .minute(endTime.minute())
         .second(0);
 
+      if (dayjs(start).isAfter(dayjs(end))) {
+        end.add(1, "day");
+      }
+
       const data = {
         title: values.title,
         room: values.room,
@@ -404,7 +429,17 @@ export default function ReservationList() {
   const handleDeleteReservation = async (reservationId) => {
     try {
       await ReservationService.deleteReservation(reservationId);
-      messageApi.open({ type: "success", content: "Reservation deleted" });
+      messageApi.open({ type: "success", content: "Reservation canceled" });
+      loadReservations();
+    } catch (error) {
+      messageApi.open({ type: "error", content: "Operation failed" });
+    }
+  };
+
+  const handleRestoreReservation = async (reservationId) => {
+    try {
+      await ReservationService.recoverReservation(reservationId);
+      messageApi.open({ type: "success", content: "Reservation recovered" });
       loadReservations();
     } catch (error) {
       messageApi.open({ type: "error", content: "Operation failed" });
