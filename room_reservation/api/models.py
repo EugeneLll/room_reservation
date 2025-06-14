@@ -13,6 +13,10 @@ class Room(models.Model):
     def __str__(self):
         return f"{self.room_name}, {self.address}, {self.human_capacity}"
 
+    class Meta:
+        unique_together = ["room_name", "address"]
+        ordering = ["room_name"]
+
 
 class Amenities(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -25,6 +29,7 @@ class Amenities(models.Model):
 
     class Meta:
         unique_together = ["room", "name"]
+        ordering = ["name"]
 
 
 class Reservation(models.Model):
@@ -34,6 +39,7 @@ class Reservation(models.Model):
     end = models.DateTimeField()
     title = models.CharField(max_length=255, null=True, blank=True)
     is_cancelled = models.BooleanField(default=False)
+    recovery_date = models.DateTimeField(default=None, null=True, blank=True)
 
     def __str__(self):
 
@@ -41,6 +47,7 @@ class Reservation(models.Model):
 
     class Meta:
         unique_together = ["room", "start", "end"]
+        ordering = ["start"]
 
 
 class Participant(models.Model):

@@ -77,8 +77,8 @@ class ReservationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Reservation
-        fields = ["id", "room", "start", "end", "title", "is_cancelled"]
-        extra_kwargs = {"is_cancelled": {"read_only": True}}
+        fields = ["id", "room", "start", "end", "title", "is_cancelled", "recovery_date"]
+        extra_kwargs = {"is_cancelled": {"read_only": True}, "recovery_date": {"read_only": True}}
 
 
 class ReservationsListSerializer(serializers.ModelSerializer):
@@ -86,8 +86,8 @@ class ReservationsListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Reservation
-        fields = ["id", "room", "start", "end", "title", "is_cancelled"]
-        extra_kwargs = {"is_cancelled": {"read_only": True}}
+        fields = ["id", "room", "start", "end", "title", "is_cancelled", "recovery_date"]
+        extra_kwargs = {"is_cancelled": {"read_only": True}, "recovery_date": {"read_only": True}}
 
 
 class ParticipantsSerializer(serializers.ModelSerializer):

@@ -1,4 +1,5 @@
 from collections import defaultdict
+from datetime import timedelta
 
 from django.contrib.auth import get_user_model
 from django.db.models import Q
@@ -80,7 +81,7 @@ class UsersViewSet(viewsets.ModelViewSet):
                 Q(start__gt=timezone.now())
                 & Q(participants__user=request.user)
                 & Q(participants__role="organizer")
-                & Q(is_cancelled=False)
+                & (Q(is_cancelled=False) | (Q(is_cancelled=True) & Q(start__gte=timezone.now() - timedelta(hours=24))))
             )
             .all()
             .values_list("id", flat=True)
@@ -93,11 +94,19 @@ class UsersViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def reservations(self, request):
+        invitation = request.query_params.get("type")
+
         participants = Participant.objects.filter(
             user=request.user,
             reservation__start__gt=timezone.now(),
             reservation__is_cancelled=False,
-        ).select_related("reservation")
+        )
+
+        if invitation == "invitation":
+            participants = participants.filter(attends="pending")
+
+        participants = participants.select_related("reservation")
+
         data = [{"reservation": participant.reservation, "participant": participant} for participant in participants]
 
         serializer = UserReservationsSerializer(data, many=True)
@@ -165,7 +174,9 @@ class ReservationsViewSet(
         if status == "upcoming":
             queryset = queryset.filter(Q(start__gte=timezone.now()) & Q(is_cancelled=False))
         elif status == "cancelled":
-            queryset = queryset.filter(is_cancelled=True)
+            queryset = queryset.filter(Q(start__gte=timezone.now()) & Q(is_cancelled=True))
+        elif status == "past":
+            queryset = queryset.filter(Q(end__lt=timezone.now()) & Q(is_cancelled=False))
         return queryset
 
     def create(self, request):
@@ -196,6 +207,32 @@ class ReservationsViewSet(
             )
 
         reservation.is_cancelled = True
+        reservation.save()
+
+        serializer = self.get_serializer(reservation)
+        return Response(
+            {"message": "Reservation cancelled successfully", "data": serializer.data},
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=True, methods=["patch"])
+    def recover(self, request, pk=None):
+        reservation = self.get_object()
+
+        if not reservation.is_cancelled:
+            return Response(
+                {"detail": "Reservation is not cancelled"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if reservation.start <= timezone.now() - timedelta(hours=24):
+            return Response(
+                {"detail": "Cannot recover a reservation that has less then 24 hours till start"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        reservation.is_cancelled = False
+        reservation.recovery_date = timezone.now()
         reservation.save()
 
         serializer = self.get_serializer(reservation)
