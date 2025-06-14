@@ -1,4 +1,4 @@
-import { Table, Tag, Spin, message, Button, Space } from "antd";
+import { Table, Tag, Spin, message, Button, Space, Tabs } from "antd";
 import { useState, useEffect } from "react";
 import { UserService } from "../api/UserService";
 import { ReservationService } from "../api/ReservationService";
@@ -8,6 +8,7 @@ import dayjs from "dayjs";
 export default function MyReservations() {
   const [messageApi, contextHolder] = message.useMessage();
   const [reservations, setReservations] = useState([]);
+  const [invites, setInvites] = useState();
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
@@ -65,6 +66,7 @@ export default function MyReservations() {
   useEffect(() => {
     if (user) {
       loadReservations();
+      loadInvites();
     }
   }, [user]);
 
@@ -80,13 +82,28 @@ export default function MyReservations() {
     }
   };
 
+  const loadInvites = async () => {
+    try {
+      setLoading(true);
+      const response = await UserService.getUserReservations({
+        type: "invitation",
+      });
+      setInvites(response.data);
+    } catch (error) {
+      messageApi.error("Failed to load your invites");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDecline = async (reservationID, participantID) => {
     try {
       ReservationService.modifyAttendance(reservationID, participantID, {
         status: "declined",
       });
       messageApi.success("Attendance status modified");
-      loadReservations();
+      await loadReservations();
+      await loadInvites();
     } catch (error) {
       messageApi.error("Modification failed");
     }
@@ -98,36 +115,73 @@ export default function MyReservations() {
         status: "accepted",
       });
       messageApi.success("Attendance status modified");
-      loadReservations();
+      await loadReservations();
+      await loadInvites();
     } catch (error) {
       messageApi.error("Modification failed");
     }
   };
 
+  const items = [
+    {
+      key: "1",
+      label: `Invites (${invites?.length || 0})`,
+      children: (
+        <Spin spinning={loading}>
+          <Table
+            dataSource={invites}
+            columns={columns}
+            rowKey="id"
+            locale={{
+              emptyText: (
+                <div
+                  style={{
+                    padding: 40,
+                    background: "#fafafa",
+                    textAlign: "center",
+                  }}
+                >
+                  No reservations for current user
+                </div>
+              ),
+            }}
+          />
+        </Spin>
+      ),
+    },
+    {
+      key: "2",
+      label: "My Reservations",
+      children: (
+        <Spin spinning={loading}>
+          <Table
+            dataSource={reservations}
+            columns={columns}
+            rowKey="id"
+            locale={{
+              emptyText: (
+                <div
+                  style={{
+                    padding: 40,
+                    background: "#fafafa",
+                    textAlign: "center",
+                  }}
+                >
+                  No reservations for current user
+                </div>
+              ),
+            }}
+          />
+        </Spin>
+      ),
+    },
+  ];
+
   return (
     <div>
       {contextHolder}
       <h1>My Reservations</h1>
-      <Spin spinning={loading}>
-        <Table
-          dataSource={reservations}
-          columns={columns}
-          rowKey="id"
-          locale={{
-            emptyText: (
-              <div
-                style={{
-                  padding: 40,
-                  background: "#fafafa",
-                  textAlign: "center",
-                }}
-              >
-                No reservations for current user
-              </div>
-            ),
-          }}
-        />
-      </Spin>
+      <Tabs defaultActiveKey="1" items={items} />
     </div>
   );
 }

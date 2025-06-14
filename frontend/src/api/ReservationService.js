@@ -9,6 +9,9 @@ export const ReservationService = {
   deleteReservation: (reservationId) =>
     apiClient.patch(`/api/reservations/${reservationId}/cancel/`),
 
+  recoverReservation: (reservationId) =>
+    apiClient.patch(`/api/reservations/${reservationId}/recover/`),
+
   getParticipants: (reservationId) =>
     apiClient.get(`/api/reservations/${reservationId}/participants/`),
   addParticipant: (reservationId, data) =>
