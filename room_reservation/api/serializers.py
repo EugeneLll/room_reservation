@@ -105,11 +105,6 @@ class ParticipantsListSerializer(serializers.ModelSerializer):
         fields = ["id", "reservation", "user", "role", "attends"]
 
 
-class MeSerializer(serializers.Serializer):
-    user = UserSerializer()
-    organized_reservations = serializers.ListField(child=serializers.UUIDField(), allow_empty=True)
-
-
 class UserReservationsSerializer(serializers.Serializer):
     reservation = ReservationsListSerializer()
     participant = ParticipantsSerializer()

@@ -1,5 +1,6 @@
 from collections import defaultdict
 from datetime import timedelta
+from uuid import UUID
 
 from django.contrib.auth import get_user_model
 from django.db.models import Q
@@ -20,7 +21,6 @@ from api.permissions import (
 )
 from api.serializers import (
     AmenitiesSerializer,
-    MeSerializer,
     ParticipantsListSerializer,
     ParticipantsSerializer,
     ReservationSerializer,
@@ -76,17 +76,7 @@ class UsersViewSet(viewsets.ModelViewSet):
 
     @action(detail=False)
     def me(self, request):
-        reservations = (
-            Reservation.objects.filter(
-                Q(start__gt=timezone.now())
-                & Q(participants__user=request.user)
-                & Q(participants__role="organizer")
-                & (Q(is_cancelled=False) | (Q(is_cancelled=True) & Q(start__gte=timezone.now() - timedelta(hours=24))))
-            )
-            .all()
-            .values_list("id", flat=True)
-        )
-        serializer = MeSerializer({"user": request.user, "organized_reservations": reservations})
+        serializer = UserSerializer(instance=request.user)
         return Response(
             serializer.data,
             status=status.HTTP_200_OK,
@@ -178,6 +168,22 @@ class ReservationsViewSet(
         elif status == "past":
             queryset = queryset.filter(Q(end__lt=timezone.now()) & Q(is_cancelled=False))
         return queryset
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        organized_ids = set(
+            Participant.objects.filter(user=request.user, role="organizer", reservation__in=queryset).values_list(
+                "reservation_id", flat=True
+            )
+        )
+
+        serializer = self.get_serializer(queryset, many=True)
+        response_data = serializer.data
+        for reservation_data in response_data:
+            reservation_data["is_organized"] = UUID(reservation_data["id"]) in organized_ids
+
+        return Response(response_data)
 
     def create(self, request):
         serializer = ReservationSerializer(data=request.data)
