@@ -24,7 +24,6 @@ dayjs.extend(isBetween);
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
 import { useSearchParams } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 
 export default function ReservationList() {
   const [reservations, setReservations] = useState([]);
@@ -41,7 +40,6 @@ export default function ReservationList() {
     { id: "organizer", name: "Organizer" },
   ];
   const [searchParams] = useSearchParams({ room: "", status: "upcoming" });
-  const { organizedReservations, setOrganizedReservations } = useAuth();
   const [occupiedRooms, setOccupiedRooms] = useState([]);
   const [timeSelection, setTimeSelection] = useState({
     date: null,
@@ -94,7 +92,7 @@ export default function ReservationList() {
     {
       title: "Actions",
       render: (_, record) => {
-        if (!organizedReservations.includes(record.id)) {
+        if (!record.is_organized) {
           return (
             <Space>
               <Button onClick={() => handleViewParticipants(record.id)}>
@@ -402,7 +400,6 @@ export default function ReservationList() {
           type: "success",
           content: "Reservation created successfully",
         });
-        setOrganizedReservations((prev) => [...prev, response.data.id]);
       }
 
       loadReservations();
@@ -495,8 +492,9 @@ export default function ReservationList() {
   };
 
   const ParticipantsModal = () => {
-    const isOrganizer = organizedReservations.includes(selectedReservation);
-
+    const isOrganizer = reservations.find(
+      (obj) => obj.id === selectedReservation
+    )?.is_organized;
     const participantColumns = [
       {
         title: "Username",
