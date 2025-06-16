@@ -16,8 +16,6 @@ def send_booking_confirmation_email(user, reservation):
                 (reservation.end + timedelta(hours=3)).strftime('%H:%M')}""",
     }
 
-    print("a")
-
     content = render_to_string("confirmation.html", context)
 
     return send_mail(
