@@ -64,7 +64,7 @@ class ReservationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"start": "Start must be after the current time."})
 
         if data.get("start").date() != data.get("end").date():
-            raise serializers.ValidationError({"end": "satrt and end dates must be within the same day."})
+            raise serializers.ValidationError({"end": "start and end dates must be within the same day."})
 
         overlapping = Reservation.objects.filter(room_id=data.get("room")).filter(
             Q(start__lt=data.get("end")) & Q(end__gt=data.get("start")) & Q(is_cancelled=False)
