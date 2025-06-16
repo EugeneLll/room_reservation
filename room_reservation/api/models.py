@@ -29,12 +29,14 @@ class Amenities(models.Model):
 
 class Reservation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    room = models.ForeignKey(Room, on_delete=models.CASCADE)
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="reservations")
     start = models.DateTimeField()
     end = models.DateTimeField()
     title = models.CharField(max_length=255, null=True, blank=True)
+    is_cancelled = models.BooleanField(default=False)
 
     def __str__(self):
+
         return f"{self.title} in room: {self.room} starts: {self.start} ends: {self.end}"
 
     class Meta:
@@ -43,7 +45,7 @@ class Reservation(models.Model):
 
 class Participant(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE)
+    reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name="participants")
     user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     role = models.CharField(
         max_length=10,
@@ -65,3 +67,4 @@ class Participant(models.Model):
 
     class Meta:
         unique_together = ["reservation", "user"]
+        ordering = ["-attends"]

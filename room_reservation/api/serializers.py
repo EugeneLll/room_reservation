@@ -2,7 +2,6 @@ from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.utils import timezone
 from rest_framework import serializers
-from rest_framework.authtoken.models import Token
 
 from api.models import Amenities, Participant, Reservation, Room
 
@@ -21,6 +20,14 @@ class UserSerializer(serializers.ModelSerializer):
             password=validated_data["password"],
         )
         return user
+
+    def update(self, instance, validated_data):
+        instance.username = validated_data["username"]
+        instance.email = validated_data["email"]
+
+        instance.set_password(validated_data["password"])
+        instance.save()
+        return instance
 
 
 class RoomSerializer(serializers.ModelSerializer):
@@ -57,8 +64,11 @@ class ReservationSerializer(serializers.ModelSerializer):
         if timezone.now() > data.get("start"):
             raise serializers.ValidationError({"start": "Start must be after the current time."})
 
+        if data.get("start").date() != data.get("end").date():
+            raise serializers.ValidationError({"end": "start and end dates must be within the same day."})
+
         overlapping = Reservation.objects.filter(room_id=data.get("room")).filter(
-            Q(start__lt=data.get("end")) & Q(end__gt=data.get("start"))
+            Q(start__lt=data.get("end")) & Q(end__gt=data.get("start")) & Q(is_cancelled=False)
         )
 
         if self.instance:
@@ -71,7 +81,8 @@ class ReservationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Reservation
-        fields = ["id", "room", "start", "end", "title"]
+        fields = ["id", "room", "start", "end", "title", "is_cancelled"]
+        extra_kwargs = {"is_cancelled": {"read_only": True}}
 
 
 class ReservationsListSerializer(serializers.ModelSerializer):
@@ -79,7 +90,8 @@ class ReservationsListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Reservation
-        fields = ["id", "room", "start", "end", "title"]
+        fields = ["id", "room", "start", "end", "title", "is_cancelled"]
+        extra_kwargs = {"is_cancelled": {"read_only": True}}
 
 
 class ParticipantsSerializer(serializers.ModelSerializer):
@@ -95,3 +107,13 @@ class ParticipantsListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Participant
         fields = ["id", "reservation", "user", "role", "attends"]
+
+
+class MeSerializer(serializers.Serializer):
+    user = UserSerializer()
+    organized_reservations = serializers.ListField(child=serializers.UUIDField(), allow_empty=True)
+
+
+class UserReservationsSerializer(serializers.Serializer):
+    reservation = ReservationsListSerializer()
+    participant = ParticipantsSerializer()
