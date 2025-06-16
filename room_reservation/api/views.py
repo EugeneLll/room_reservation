@@ -11,6 +11,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from api.models import Amenities, Participant, Reservation, Room
+
 from api.serializers import (
     AmenitiesSerializer,
     ParticipantsListSerializer,
@@ -48,6 +49,7 @@ class LogoutView(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
+
 class UsersViewSet(viewsets.ModelViewSet):
     queryset = get_user_model().objects.all()
     permission_classes = [IsAuthenticated]
@@ -58,6 +60,7 @@ class UsersViewSet(viewsets.ModelViewSet):
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        
         return Response(
             {"message": "User created"},
             status=status.HTTP_201_CREATED,
@@ -66,6 +69,7 @@ class UsersViewSet(viewsets.ModelViewSet):
     @action(detail=False)
     def me(self, request):
         serializer = UserSerializer(instance=request.user)
+
         return Response(
             serializer.data,
             status=status.HTTP_200_OK,
@@ -94,6 +98,7 @@ class AmenitiesViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         room_id = self.kwargs.get("room_id")
         return Amenities.objects.filter(room_id=room_id)
+
 
 
 class ReservationsViewSet(SplitDetailListSerializerViewSetMixin, viewsets.ModelViewSet):
@@ -126,6 +131,7 @@ class ReservationsViewSet(SplitDetailListSerializerViewSetMixin, viewsets.ModelV
 
 class ParticipantsViewSet(SplitDetailListSerializerViewSetMixin, viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
+
     list_serializer = ParticipantsListSerializer
     detail_serialzier = ParticipantsSerializer
 

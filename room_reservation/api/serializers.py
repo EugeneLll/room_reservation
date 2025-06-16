@@ -7,6 +7,7 @@ from rest_framework.authtoken.models import Token
 from api.models import Amenities, Participant, Reservation, Room
 
 
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
