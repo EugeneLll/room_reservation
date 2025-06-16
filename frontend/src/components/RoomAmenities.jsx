@@ -1,27 +1,17 @@
 import { Table, Button, Modal, Form, Input, message, Space } from "antd";
 import { useState, useEffect } from "react";
 import { RoomService } from "../api/RoomService";
-import RoomAmenities from "./RoomAmenities";
-import { Link } from "react-router-dom";
 
-export default function RoomList() {
+export default function RoomAmenities({ roomId }) {
   const [messageApi, contextHolder] = message.useMessage();
-  const [rooms, setRooms] = useState([]);
+  const [amenities, setAmenities] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
 
   const columns = [
-    { title: "Name", dataIndex: "room_name", key: "room_name" },
-    { title: "Address", dataIndex: "address", key: "address" },
-    { title: "Capacity", dataIndex: "human_capacity", key: "human_capacity" },
-    {
-      title: "Reservations",
-      key: "reservations",
-      render: (_, record) => (
-        <Link to={`/reservations?room=${record.id}`}>View Reservations</Link>
-      ),
-    },
+    { title: "Name", dataIndex: "name", key: "name" },
+    { title: "Amount", dataIndex: "amount", key: "amount" },
     {
       title: "Actions",
       key: "actions",
@@ -37,16 +27,16 @@ export default function RoomList() {
   ];
 
   useEffect(() => {
-    loadRooms();
-  }, []);
+    loadAmenities();
+  }, [roomId]);
 
-  const loadRooms = async () => {
+  const loadAmenities = async () => {
     try {
       setLoading(true);
-      const response = await RoomService.getRooms();
-      setRooms(response.data);
+      const response = await RoomService.getRoomAmenities(roomId);
+      setAmenities(response.data);
     } catch (error) {
-      messageApi.error("Failed to load rooms");
+      messageApi.error("Failed to load amenities");
     } finally {
       setLoading(false);
     }
@@ -55,13 +45,21 @@ export default function RoomList() {
   const handleSubmit = async (values) => {
     try {
       if (values.id) {
-        await RoomService.updateRoom(values.id, values);
-        messageApi.success("Room updated successfully");
+        await RoomService.updateAmenity(roomId, values.id, {
+          room: roomId,
+          amount: values.amount,
+          name: values.name,
+        });
+        messageApi.success("Amenity updated successfully");
       } else {
-        await RoomService.createRoom(values);
-        messageApi.success("Room created successfully");
+        await RoomService.createAmenity(roomId, {
+          room: roomId,
+          amount: values.amount,
+          name: values.name,
+        });
+        messageApi.success("Amenity created successfully");
       }
-      loadRooms();
+      loadAmenities();
       setIsModalOpen(false);
       form.resetFields();
     } catch (error) {
@@ -69,23 +67,23 @@ export default function RoomList() {
     }
   };
 
-  const handleEdit = (room) => {
-    form.setFieldsValue(room);
+  const handleEdit = (amenity) => {
+    form.setFieldsValue(amenity);
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (roomId) => {
+  const handleDelete = async (amenityId) => {
     try {
-      await RoomService.deleteRoom(roomId);
-      messageApi.success("Room deleted");
-      loadRooms();
+      await RoomService.deleteAmenity(roomId, amenityId);
+      messageApi.success("Amenity deleted");
+      loadAmenities();
     } catch (error) {
       messageApi.error("Delete failed");
     }
   };
 
   return (
-    <div>
+    <div style={{ marginTop: 24 }}>
       {contextHolder}
       <Button
         type="primary"
@@ -95,18 +93,15 @@ export default function RoomList() {
         }}
         style={{ marginBottom: 16 }}
       >
-        Add Room
+        Add Amenity
       </Button>
 
       <Table
-        dataSource={rooms}
+        dataSource={amenities}
         columns={columns}
         rowKey="id"
         loading={loading}
-        expandable={{
-          expandedRowRender: (record) => <RoomAmenities roomId={record.id} />,
-          rowExpandable: (record) => record.id !== undefined,
-        }}
+        pagination={false}
         locale={{
           emptyText: (
             <div
@@ -116,47 +111,33 @@ export default function RoomList() {
                 textAlign: "center",
               }}
             >
-              No rooms
+              No amenities for this room
             </div>
           ),
         }}
       />
 
       <Modal
-        title={form.getFieldValue("id") ? "Edit Room" : "Create Room"}
+        title={form.getFieldValue("id") ? "Edit Amenity" : "Create Amenity"}
         open={isModalOpen}
         onCancel={() => {
           setIsModalOpen(false);
           form.resetFields();
         }}
         onOk={() => form.submit()}
-        width={600}
       >
         <Form form={form} onFinish={handleSubmit}>
           <Form.Item name="id" hidden>
             <Input />
           </Form.Item>
-
           <Form.Item
             label="Name"
-            name="room_name"
-            rules={[{ required: true, message: "Please enter room name" }]}
+            name="name"
+            rules={[{ required: true, message: "Please enter amenity name" }]}
           >
             <Input />
           </Form.Item>
-          <Form.Item
-            label="Address"
-            name="address"
-            rules={[{ required: true, message: "Please enter room name" }]}
-          >
-            <Input />
-          </Form.Item>
-
-          <Form.Item
-            label="Capacity"
-            name="capacity"
-            rules={[{ required: true, message: "Please enter room capacity" }]}
-          >
+          <Form.Item label="Amount" name="amount" rules={[{ required: false }]}>
             <Input type="number" min={1} />
           </Form.Item>
         </Form>

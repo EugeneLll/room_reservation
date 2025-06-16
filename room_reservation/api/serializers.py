@@ -4,7 +4,8 @@ from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
-from api.models import Participant, Reservation, Room
+from api.models import Amenities, Participant, Reservation, Room
+
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -14,8 +15,11 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {"password": {"write_only": True, "required": True}}
 
     def create(self, validated_data):
-        user = get_user_model().objects.create_user(**validated_data)
-        Token.objects.create(user=user)
+        user = get_user_model().objects.create_user(
+            username=validated_data["username"],
+            email=validated_data["email"],
+            password=validated_data["password"],
+        )
         return user
 
 
@@ -25,11 +29,24 @@ class RoomSerializer(serializers.ModelSerializer):
         fields = ["id", "address", "room_name", "human_capacity"]
 
 
+class AmenitiesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Amenities
+        fields = ["id", "name", "amount", "room"]
+
+
 class ReservationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
+        user = validated_data.pop("user")
         reservation = Reservation(**validated_data)
         reservation.save()
+        Participant.objects.create(
+            reservation=reservation,
+            user=user,
+            role="organizer",
+            attends="accepted",
+        )
         return reservation
 
     def validate(self, data):
@@ -45,7 +62,7 @@ class ReservationSerializer(serializers.ModelSerializer):
         )
 
         if self.instance:
-            overlapping.exclude(id=self.instance.id)
+            overlapping = overlapping.exclude(id=self.instance.id)
 
         if overlapping.exists():
             raise serializers.ValidationError({"room": "This room is already reserved for this time"})

@@ -88,6 +88,19 @@ export default function UserList() {
         columns={columns}
         rowKey="id"
         style={{ marginTop: 24 }}
+        locale={{
+          emptyText: (
+            <div
+              style={{
+                padding: 40,
+                background: "#fafafa",
+                textAlign: "center",
+              }}
+            >
+              No users
+            </div>
+          ),
+        }}
       />
 
       <Modal

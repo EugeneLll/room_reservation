@@ -14,6 +14,19 @@ class Room(models.Model):
         return f"{self.room_name}, {self.address}, {self.human_capacity}"
 
 
+class Amenities(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=50)
+    amount = models.PositiveIntegerField(default=1)
+    room = models.ForeignKey(Room, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.name} in room {self.room}, x {self.amount}"
+
+    class Meta:
+        unique_together = ["room", "name"]
+
+
 class Reservation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     room = models.ForeignKey(Room, on_delete=models.CASCADE)

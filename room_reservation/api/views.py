@@ -1,12 +1,19 @@
 from django.contrib.auth import get_user_model
+from django.db.models import Q
+from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
+from rest_framework.views import APIView
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.tokens import RefreshToken
 
-from api.models import Participant, Reservation, Room
+from api.models import Amenities, Participant, Reservation, Room
+
 from api.serializers import (
+    AmenitiesSerializer,
     ParticipantsListSerializer,
     ParticipantsSerializer,
     ReservationSerializer,
@@ -28,9 +35,24 @@ class SplitDetailListSerializerViewSetMixin:
         return super().get_serializer_class()
 
 
+class LogoutView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        try:
+            refresh_token = request.data.get("token")
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response(status=status.HTTP_205_RESET_CONTENT)
+        except TokenError as e:
+            print(e)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+
 class UsersViewSet(viewsets.ModelViewSet):
     queryset = get_user_model().objects.all()
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     serializer_class = UserSerializer
 
     @action(detail=False, methods=["POST"], permission_classes=[AllowAny])
@@ -38,38 +60,81 @@ class UsersViewSet(viewsets.ModelViewSet):
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response({"message": "User created"}, status=status.HTTP_201_CREATED)
+        
+        return Response(
+            {"message": "User created"},
+            status=status.HTTP_201_CREATED,
+        )
 
     @action(detail=False)
     def me(self, request):
         serializer = UserSerializer(instance=request.user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=False)
+    def reservations(self, request):
+        queryset = Reservation.objects.filter(Q(start__gt=timezone.now()) & Q(participant__user=request.user))
+        serializer = ReservationsListSerializer(instance=queryset, many=True)
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK,
+        )
 
 
 class RoomsViewSet(viewsets.ModelViewSet):
     queryset = Room.objects.all()
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     serializer_class = RoomSerializer
 
-    @action(detail=True)
-    def reservations(self, request, pk):
-        query = Reservation.objects.filter(room_id=pk)
-        serializer = ReservationSerializer(instance=query, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class AmenitiesViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AmenitiesSerializer
+
+    def get_queryset(self):
+        room_id = self.kwargs.get("room_id")
+        return Amenities.objects.filter(room_id=room_id)
+
 
 
 class ReservationsViewSet(SplitDetailListSerializerViewSetMixin, viewsets.ModelViewSet):
-    queryset = Reservation.objects.all()
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     list_serializer = ReservationsListSerializer
     detail_serialzier = ReservationSerializer
 
+    def get_queryset(self):
+        queryset = Reservation.objects.all()
+        room = self.request.query_params.get("room")
+        status = self.request.query_params.get("status")
+
+        if room:
+            queryset = queryset.filter(room__id=room)
+        if status == "upcoming":
+            queryset = queryset.filter(start__gte=timezone.now())
+        return queryset
+
+    def create(self, request):
+        serializer = ReservationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        reservation = serializer.save(user=request.user)
+        serialized_data = ReservationSerializer(instance=reservation).data
+
+        return Response(
+            serialized_data,
+            status=status.HTTP_200_OK,
+        )
+
 
 class ParticipantsViewSet(SplitDetailListSerializerViewSetMixin, viewsets.ModelViewSet):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
+
     list_serializer = ParticipantsListSerializer
     detail_serialzier = ParticipantsSerializer
 
     def get_queryset(self):
-        pk = self.kwargs.get("reservation_id")
-        return Participant.objects.filter(reservation_id=pk)
+        reservation_id = self.kwargs.get("reservation_id")
+        return Participant.objects.filter(reservation_id=reservation_id)

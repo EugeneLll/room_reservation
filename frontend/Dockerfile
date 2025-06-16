@@ -8,6 +8,4 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 5713
-
 ENTRYPOINT ["npm", "run", "dev"]
