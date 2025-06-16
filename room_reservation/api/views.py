@@ -15,6 +15,7 @@ from api.permissions import (
     IsParticipantOrganizerOrReadOnly,
     IsReservationOrganizerOrReadOnly,
 )
+
 from api.serializers import (
     AmenitiesSerializer,
     MeSerializer,
@@ -54,6 +55,7 @@ class LogoutView(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
+
 class UsersViewSet(viewsets.ModelViewSet):
     queryset = get_user_model().objects.all()
     permission_classes = [IsAuthenticated]
@@ -64,6 +66,7 @@ class UsersViewSet(viewsets.ModelViewSet):
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        
         return Response(
             {"message": "User created"},
             status=status.HTTP_201_CREATED,
@@ -82,6 +85,7 @@ class UsersViewSet(viewsets.ModelViewSet):
             .values_list("id", flat=True)
         )
         serializer = MeSerializer({"user": request.user, "organized_reservations": reservations})
+
         return Response(
             serializer.data,
             status=status.HTTP_200_OK,
@@ -127,6 +131,7 @@ class ReservationsViewSet(
     viewsets.GenericViewSet,
 ):
     permission_classes = [IsAuthenticated, IsReservationOrganizerOrReadOnly]
+
     list_serializer = ReservationsListSerializer
     detail_serialzier = ReservationSerializer
 
@@ -207,6 +212,7 @@ class ReservationsViewSet(
 
 class ParticipantsViewSet(SplitDetailListSerializerViewSetMixin, viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsParticipantOrganizerOrReadOnly]
+
     list_serializer = ParticipantsListSerializer
     detail_serialzier = ParticipantsSerializer
 
