@@ -43,6 +43,7 @@ const ReservationFilters = ({ rooms, searchParams, onFilterChange }) => {
       >
         <Select.Option value="all">All</Select.Option>
         <Select.Option value="upcoming">Upcoming</Select.Option>
+        <Select.Option value="cancelled">Cancelled</Select.Option>
       </Select>
 
       <Button onClick={clearFilters}>Clear Filters</Button>

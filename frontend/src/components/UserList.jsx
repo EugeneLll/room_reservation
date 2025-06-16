@@ -49,7 +49,7 @@ export default function UserList() {
       } else {
         await UserService.createUser(values);
         messageApi.open({
-          type: "error",
+          type: "success",
           content: "User created successfully",
         });
       }

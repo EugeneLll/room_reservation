@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.utils import timezone
@@ -23,6 +25,7 @@ from api.serializers import (
     ParticipantsSerializer,
     ReservationSerializer,
     ReservationsListSerializer,
+    RoomOccupiedSerializer,
     RoomSerializer,
     UserReservationsSerializer,
     UserSerializer,
@@ -111,6 +114,27 @@ class RoomsViewSet(viewsets.ModelViewSet):
     queryset = Room.objects.all()
     permission_classes = [IsAuthenticated]
     serializer_class = RoomSerializer
+
+    @action(methods=["get"], detail=False)
+    def occupied(self, request):
+        reservations = Reservation.objects.filter(end__gte=timezone.now(), is_cancelled=False).select_related("room")
+        room_reservation = defaultdict(list)
+        for reservation in reservations:
+            room_reservation[str(reservation.room.id)].append({"start": reservation.start, "end": reservation.end})
+        serializer = RoomOccupiedSerializer(
+            list(
+                map(
+                    lambda pair: {"room_id": pair[0], "occupied_time": pair[1]},
+                    room_reservation.items(),
+                )
+            ),
+            many=True,
+        )
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK,
+        )
 
 
 class AmenitiesViewSet(viewsets.ModelViewSet):

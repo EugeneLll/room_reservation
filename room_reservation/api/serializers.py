@@ -117,3 +117,13 @@ class MeSerializer(serializers.Serializer):
 class UserReservationsSerializer(serializers.Serializer):
     reservation = ReservationsListSerializer()
     participant = ParticipantsSerializer()
+
+
+class OccupiedTimeSerializer(serializers.Serializer):
+    start = serializers.DateTimeField()
+    end = serializers.DateTimeField()
+
+
+class RoomOccupiedSerializer(serializers.Serializer):
+    room_id = serializers.UUIDField()
+    occupied_time = OccupiedTimeSerializer(many=True)
