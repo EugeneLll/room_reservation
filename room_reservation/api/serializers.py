@@ -6,6 +6,7 @@ from rest_framework import serializers
 from api.models import Amenities, Participant, Reservation, Room
 
 
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
