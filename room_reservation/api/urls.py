@@ -2,24 +2,22 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from api import views
-
-from api import views
+from api.views import participants, reservations, rooms, users
 
 users_router = DefaultRouter()
-users_router.register(r"", views.UsersViewSet, basename="users")
+users_router.register(r"", users.UsersViewSet, basename="users")
 
 rooms_router = DefaultRouter()
-rooms_router.register(r"", views.RoomsViewSet, basename="rooms")
+rooms_router.register(r"", rooms.RoomsViewSet, basename="rooms")
 
 reservations_router = DefaultRouter()
-reservations_router.register(r"", views.ReservationsViewSet, basename="reservations")
+reservations_router.register(r"", reservations.ReservationsViewSet, basename="reservations")
 
 participants_router = DefaultRouter()
-participants_router.register(r"", views.ParticipantsViewSet, basename="participants")
+participants_router.register(r"", participants.ParticipantsViewSet, basename="participants")
 
 amenities_router = DefaultRouter()
-amenities_router.register(r"", views.AmenitiesViewSet, basename="amenities")
+amenities_router.register(r"", rooms.AmenitiesViewSet, basename="amenities")
 
 urlpatterns = [
     path(
@@ -34,7 +32,7 @@ urlpatterns = [
     ),
     path(
         "token/logout/",
-        views.LogoutView.as_view(),
+        users.LogoutView.as_view(),
         name="logout",
     ),
     path(
