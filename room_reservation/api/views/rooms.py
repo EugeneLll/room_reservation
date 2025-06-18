@@ -21,7 +21,7 @@ class RoomsViewSet(viewsets.ModelViewSet):
 
     @action(methods=["get"], detail=False)
     def occupied(self, request):
-        reservations = Reservation.objects.filter(end__gte=timezone.now(), is_cancelled=False).select_related("room")
+        reservations = Reservation.objects.filter(end__gte=timezone.now()).select_related("room")
         room_reservation = defaultdict(list)
         for reservation in reservations:
             room_reservation[str(reservation.room.id)].append({"start": reservation.start, "end": reservation.end})
