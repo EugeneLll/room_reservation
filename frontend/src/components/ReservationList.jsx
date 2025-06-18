@@ -69,9 +69,11 @@ export default function ReservationList() {
       title: "Title",
       render: (_, record) => {
         let title = record.title;
-        if (record.recovery_date !== null) {
-          const recovered = dayjs(record.recovery_date);
-          title += " Recovered on " + recovered;
+        if (record.recovery_date !== null && !record.is_cancelled) {
+          const recovered = dayjs(record.recovery_date).format(
+            "MMM D, YYYY HH:mm"
+          );
+          title += " (Recovered on " + recovered + ")";
         }
         return title;
       },
