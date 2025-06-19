@@ -62,6 +62,17 @@ class ReservationsViewSet(
 
         return Response(response_data)
 
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+
+        is_organized = Participant.objects.filter(reservation=instance, user=request.user, role="organizer").exists()
+
+        response_data = serializer.data
+        response_data["is_organized"] = is_organized
+
+        return Response(response_data)
+
     def create(self, request):
         serializer = ReservationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
