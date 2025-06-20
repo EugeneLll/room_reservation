@@ -1,3 +1,4 @@
+import os
 from collections import defaultdict
 from datetime import timedelta
 from uuid import UUID
@@ -5,6 +6,7 @@ from uuid import UUID
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.utils import timezone
+from dotenv import load_dotenv
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -19,7 +21,6 @@ from api.permissions import (
     IsParticipantOrganizerOrReadOnly,
     IsReservationOrganizerOrReadOnly,
 )
-
 from api.serializers import (
     AmenitiesSerializer,
     ParticipantsListSerializer,
@@ -32,6 +33,9 @@ from api.serializers import (
     UserSerializer,
 )
 from api.tasks import send_booking_confirmation, send_participant_invitation
+
+load_dotenv()
+ALLOWED_HOURS = int(os.getenv("RESERVATION_CANCEL_ALLOWED_HOURS", 24))
 
 
 class SplitDetailListSerializerViewSetMixin:
@@ -60,7 +64,6 @@ class LogoutView(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class UsersViewSet(viewsets.ModelViewSet):
     queryset = get_user_model().objects.all()
     permission_classes = [IsAuthenticated]
@@ -71,7 +74,7 @@ class UsersViewSet(viewsets.ModelViewSet):
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        
+
         return Response(
             {"message": "User created"},
             status=status.HTTP_201_CREATED,
@@ -162,15 +165,16 @@ class ReservationsViewSet(
         queryset = Reservation.objects.all()
         room = self.request.query_params.get("room")
         status = self.request.query_params.get("status")
+        now = timezone.now()
 
         if room:
             queryset = queryset.filter(room__id=room)
-        if status == "upcoming":
-            queryset = queryset.filter(Q(start__gte=timezone.now()) & Q(is_cancelled=False))
-        elif status == "cancelled":
-            queryset = queryset.filter(Q(start__gte=timezone.now()) & Q(is_cancelled=True))
-        elif status == "past":
-            queryset = queryset.filter(Q(end__lt=timezone.now()) & Q(is_cancelled=False))
+        if status == Reservation.Status.UPCOMING:
+            queryset = queryset.filter(Q(start__gte=now) & Q(is_cancelled=False))
+        elif status == Reservation.Status.CANCELLED:
+            queryset = queryset.filter(Q(start__gte=now) & Q(is_cancelled=True))
+        elif status == Reservation.Status.PAST:
+            queryset = queryset.filter(Q(end__lt=now) & Q(is_cancelled=False))
         return queryset
 
     def list(self, request, *args, **kwargs):
@@ -235,9 +239,9 @@ class ReservationsViewSet(
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if reservation.start <= timezone.now() - timedelta(hours=24):
+        if reservation.start <= timezone.now() - timedelta(hours=ALLOWED_HOURS):
             return Response(
-                {"detail": "Cannot recover a reservation that has less then 24 hours till start"},
+                {"detail": f"Cannot recover a reservation that has less then {ALLOWED_HOURS} hours till start"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
