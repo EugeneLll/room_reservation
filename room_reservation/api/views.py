@@ -1,12 +1,11 @@
-import os
 from collections import defaultdict
 from datetime import timedelta
 from uuid import UUID
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.utils import timezone
-from dotenv import load_dotenv
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -33,9 +32,6 @@ from api.serializers import (
     UserSerializer,
 )
 from api.tasks import send_booking_confirmation, send_participant_invitation
-
-load_dotenv()
-ALLOWED_HOURS = int(os.getenv("RESERVATION_CANCEL_ALLOWED_HOURS", 24))
 
 
 class SplitDetailListSerializerViewSetMixin:
@@ -239,9 +235,13 @@ class ReservationsViewSet(
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        ALLOWED_HOURS = settings.ALLOWED_HOURS
+
         if reservation.start <= timezone.now() - timedelta(hours=ALLOWED_HOURS):
             return Response(
-                {"detail": f"Cannot recover a reservation that has less then {ALLOWED_HOURS} hours till start"},
+                {
+                    "detail": f"Cannot recover a reservation that has less then {ALLOWED_HOURS} hours till start",
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
