@@ -33,7 +33,7 @@ class ReservationsViewSet(
     detail_serialzier = ReservationSerializer
 
     def get_queryset(self):
-        qqueryset = Reservation.objects.all()
+        queryset = Reservation.objects.all()
         room = self.request.query_params.get("room")
         status = self.request.query_params.get("status")
         now = timezone.now()
