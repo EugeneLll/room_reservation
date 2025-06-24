@@ -49,6 +49,11 @@ class Reservation(models.Model):
         unique_together = ["room", "start", "end"]
         ordering = ["start"]
 
+    class Status(models.TextChoices):
+        UPCOMING = "upcoming", "Upcoming"
+        CANCELLED = "cancelled", "Cancelled"
+        PAST = "past", "Past"
+
 
 class Participant(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

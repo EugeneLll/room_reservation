@@ -24,7 +24,6 @@ dayjs.extend(isBetween);
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
 import { useSearchParams } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 
 export default function ReservationList() {
   const [reservations, setReservations] = useState([]);
@@ -41,7 +40,6 @@ export default function ReservationList() {
     { id: "organizer", name: "Organizer" },
   ];
   const [searchParams] = useSearchParams({ room: "", status: "upcoming" });
-  const { organizedReservations, setOrganizedReservations } = useAuth();
   const [occupiedRooms, setOccupiedRooms] = useState([]);
   const [timeSelection, setTimeSelection] = useState({
     date: null,
@@ -69,7 +67,16 @@ export default function ReservationList() {
     },
     {
       title: "Title",
-      dataIndex: "title",
+      render: (_, record) => {
+        let title = record.title;
+        if (record.recovery_date !== null && !record.is_cancelled) {
+          const recovered = dayjs(record.recovery_date).format(
+            "MMM D, YYYY HH:mm"
+          );
+          title += " (Recovered on " + recovered + ")";
+        }
+        return title;
+      },
     },
     {
       title: "Room",
@@ -87,7 +94,7 @@ export default function ReservationList() {
     {
       title: "Actions",
       render: (_, record) => {
-        if (!organizedReservations.includes(record.id)) {
+        if (!record.is_organized) {
           return (
             <Space>
               <Button onClick={() => handleViewParticipants(record.id)}>
@@ -95,7 +102,7 @@ export default function ReservationList() {
               </Button>
             </Space>
           );
-        } else {
+        } else if (!record.is_cancelled) {
           return (
             <Space>
               <Button onClick={() => handleEditReservation(record)}>
@@ -110,6 +117,20 @@ export default function ReservationList() {
             </Space>
           );
         }
+        return (
+          <Space>
+            <Button onClick={() => handleViewParticipants(record.id)}>
+              Participants
+            </Button>
+            <Button
+              color="cyan"
+              variant="outlined"
+              onClick={() => handleRestoreReservation(record.id)}
+            >
+              Restore
+            </Button>
+          </Space>
+        );
       },
     },
   ];
@@ -358,6 +379,10 @@ export default function ReservationList() {
         .minute(endTime.minute())
         .second(0);
 
+      if (dayjs(start).isAfter(dayjs(end))) {
+        end.add(1, "day");
+      }
+
       const data = {
         title: values.title,
         room: values.room,
@@ -377,7 +402,6 @@ export default function ReservationList() {
           type: "success",
           content: "Reservation created successfully",
         });
-        setOrganizedReservations((prev) => [...prev, response.data.id]);
       }
 
       loadReservations();
@@ -404,7 +428,17 @@ export default function ReservationList() {
   const handleDeleteReservation = async (reservationId) => {
     try {
       await ReservationService.deleteReservation(reservationId);
-      messageApi.open({ type: "success", content: "Reservation deleted" });
+      messageApi.open({ type: "success", content: "Reservation canceled" });
+      loadReservations();
+    } catch (error) {
+      messageApi.open({ type: "error", content: "Operation failed" });
+    }
+  };
+
+  const handleRestoreReservation = async (reservationId) => {
+    try {
+      await ReservationService.recoverReservation(reservationId);
+      messageApi.open({ type: "success", content: "Reservation recovered" });
       loadReservations();
     } catch (error) {
       messageApi.open({ type: "error", content: "Operation failed" });
@@ -460,8 +494,9 @@ export default function ReservationList() {
   };
 
   const ParticipantsModal = () => {
-    const isOrganizer = organizedReservations.includes(selectedReservation);
-
+    const isOrganizer = reservations.find(
+      (obj) => obj.id === selectedReservation
+    )?.is_organized;
     const participantColumns = [
       {
         title: "Username",

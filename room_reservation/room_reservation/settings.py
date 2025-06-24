@@ -125,6 +125,8 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = os.getenv("CELERY_TIMEZONE", "UTC")
 
+ALLOWED_HOURS = int(os.getenv("RESERVATION_CANCEL_ALLOWED_HOURS", 24))
+
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 

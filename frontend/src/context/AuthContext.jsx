@@ -12,7 +12,6 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [organizedReservations, setOrganizedReservations] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const fetchUser = useCallback(async () => {
@@ -21,8 +20,7 @@ export const AuthProvider = ({ children }) => {
       if (!token) return;
 
       const response = await apiClient.get("/api/users/me/");
-      setUser(response.data.user);
-      setOrganizedReservations(response.data.organized_reservations);
+      setUser(response.data);
     } catch (error) {
       console.error("Failed to fetch user", error);
     } finally {
@@ -70,15 +68,12 @@ export const AuthProvider = ({ children }) => {
     Cookies.remove("access_token");
     Cookies.remove("refresh_token");
     setUser(null);
-    setOrganizedReservations(null);
   }, []);
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        organizedReservations,
-        setOrganizedReservations,
         loading,
         login,
         signup,
