@@ -1,5 +1,8 @@
 from collections import defaultdict
+from datetime import timedelta
+from uuid import UUID
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.utils import timezone
@@ -17,10 +20,8 @@ from api.permissions import (
     IsParticipantOrganizerOrReadOnly,
     IsReservationOrganizerOrReadOnly,
 )
-
 from api.serializers import (
     AmenitiesSerializer,
-    MeSerializer,
     ParticipantsListSerializer,
     ParticipantsSerializer,
     ReservationSerializer,
@@ -59,7 +60,6 @@ class LogoutView(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class UsersViewSet(viewsets.ModelViewSet):
     queryset = get_user_model().objects.all()
     permission_classes = [IsAuthenticated]
@@ -70,7 +70,7 @@ class UsersViewSet(viewsets.ModelViewSet):
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        
+
         return Response(
             {"message": "User created"},
             status=status.HTTP_201_CREATED,
@@ -78,18 +78,7 @@ class UsersViewSet(viewsets.ModelViewSet):
 
     @action(detail=False)
     def me(self, request):
-        reservations = (
-            Reservation.objects.filter(
-                Q(start__gt=timezone.now())
-                & Q(participants__user=request.user)
-                & Q(participants__role="organizer")
-                & Q(is_cancelled=False)
-            )
-            .all()
-            .values_list("id", flat=True)
-        )
-        serializer = MeSerializer({"user": request.user, "organized_reservations": reservations})
-
+        serializer = UserSerializer(instance=request.user)
         return Response(
             serializer.data,
             status=status.HTTP_200_OK,
@@ -97,11 +86,19 @@ class UsersViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def reservations(self, request):
+        invitation = request.query_params.get("type")
+
         participants = Participant.objects.filter(
             user=request.user,
             reservation__start__gt=timezone.now(),
             reservation__is_cancelled=False,
-        ).select_related("reservation")
+        )
+
+        if invitation == "invitation":
+            participants = participants.filter(attends="pending")
+
+        participants = participants.select_related("reservation")
+
         data = [{"reservation": participant.reservation, "participant": participant} for participant in participants]
 
         serializer = UserReservationsSerializer(data, many=True)
@@ -164,14 +161,33 @@ class ReservationsViewSet(
         queryset = Reservation.objects.all()
         room = self.request.query_params.get("room")
         status = self.request.query_params.get("status")
+        now = timezone.now()
 
         if room:
             queryset = queryset.filter(room__id=room)
-        if status == "upcoming":
-            queryset = queryset.filter(Q(start__gte=timezone.now()) & Q(is_cancelled=False))
-        elif status == "cancelled":
-            queryset = queryset.filter(is_cancelled=True)
+        if status == Reservation.Status.UPCOMING:
+            queryset = queryset.filter(Q(start__gte=now) & Q(is_cancelled=False))
+        elif status == Reservation.Status.CANCELLED:
+            queryset = queryset.filter(Q(start__gte=now) & Q(is_cancelled=True))
+        elif status == Reservation.Status.PAST:
+            queryset = queryset.filter(Q(end__lt=now) & Q(is_cancelled=False))
         return queryset
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        organized_ids = set(
+            Participant.objects.filter(user=request.user, role="organizer", reservation__in=queryset).values_list(
+                "reservation_id", flat=True
+            )
+        )
+
+        serializer = self.get_serializer(queryset, many=True)
+        response_data = serializer.data
+        for reservation_data in response_data:
+            reservation_data["is_organized"] = UUID(reservation_data["id"]) in organized_ids
+
+        return Response(response_data)
 
     def create(self, request):
         serializer = ReservationSerializer(data=request.data)
@@ -201,6 +217,36 @@ class ReservationsViewSet(
             )
 
         reservation.is_cancelled = True
+        reservation.save()
+
+        serializer = self.get_serializer(reservation)
+        return Response(
+            {"message": "Reservation cancelled successfully", "data": serializer.data},
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=True, methods=["patch"])
+    def recover(self, request, pk=None):
+        reservation = self.get_object()
+
+        if not reservation.is_cancelled:
+            return Response(
+                {"detail": "Reservation is not cancelled"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        ALLOWED_HOURS = settings.ALLOWED_HOURS
+
+        if reservation.start <= timezone.now() - timedelta(hours=ALLOWED_HOURS):
+            return Response(
+                {
+                    "detail": f"Cannot recover a reservation that has less then {ALLOWED_HOURS} hours till start",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        reservation.is_cancelled = False
+        reservation.recovery_date = timezone.now()
         reservation.save()
 
         serializer = self.get_serializer(reservation)
@@ -254,8 +300,6 @@ class ParticipantsViewSet(SplitDetailListSerializerViewSetMixin, viewsets.ModelV
     def change_status(self, request, reservation_id, pk=None):
         instance = self.get_object()
         reservation = instance.reservation
-
-        print(instance.user, request.user)
 
         if instance.user != request.user:
             return Response(
