@@ -4,6 +4,7 @@ export const ReservationService = {
   getReservations: (params = {}) =>
     apiClient.get("/api/reservations/", { params }),
   createReservation: (data) => apiClient.post("/api/reservations/", data),
+  getReservation:(reservationId) => apiClient.get(`/api/reservations/${reservationId}/`),
   updateReservation: (reservationId, data) =>
     apiClient.put(`/api/reservations/${reservationId}/`, data),
   deleteReservation: (reservationId) =>

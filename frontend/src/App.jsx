@@ -17,6 +17,7 @@ import {
   RoomList,
   SignupForm,
   UserList,
+  ReservationDetail
 } from "./components";
 
 const { Header, Content } = Layout;
@@ -95,6 +96,15 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <ReservationList />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/reservations/:id"
+              element={
+                <ProtectedRoute>
+                  <ReservationDetail />
                 </ProtectedRoute>
               }
             />
