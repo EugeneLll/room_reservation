@@ -301,8 +301,6 @@ class ParticipantsViewSet(SplitDetailListSerializerViewSetMixin, viewsets.ModelV
         instance = self.get_object()
         reservation = instance.reservation
 
-        print(instance.user, request.user)
-
         if instance.user != request.user:
             return Response(
                 {"detail": "Current user doesn't have rights to modify attendance status"},
