@@ -22,4 +22,3 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONFAULTHANDLER=1 \
     PYTHONPATH=/app
 
-ENTRYPOINT [ "sh", "/entrypoint.sh" ]

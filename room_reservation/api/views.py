@@ -30,6 +30,7 @@ from api.serializers import (
     UserReservationsSerializer,
     UserSerializer,
 )
+from api.tasks import send_booking_confirmation, send_participant_invitation
 
 
 class SplitDetailListSerializerViewSetMixin:
@@ -177,34 +178,9 @@ class ReservationsViewSet(
         serializer.is_valid(raise_exception=True)
         reservation = serializer.save(user=request.user)
         serialized_data = ReservationSerializer(instance=reservation).data
-
+        send_booking_confirmation.delay(reservation.id, request.user.id)
         return Response(
             serialized_data,
-            status=status.HTTP_200_OK,
-        )
-
-    @action(methods=["PATCH"], detail=True)
-    def cancel(self, request, pk=None):
-        reservation = self.get_object()
-
-        if reservation.is_cancelled:
-            return Response(
-                {"detail": "Reservation is already cancelled"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        if reservation.start <= timezone.now():
-            return Response(
-                {"detail": "Cannot cancel a reservation that has already started"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        reservation.is_cancelled = True
-        reservation.save()
-
-        serializer = self.get_serializer(reservation)
-        return Response(
-            {"message": "Reservation cancelled successfully", "data": serializer.data},
             status=status.HTTP_200_OK,
         )
 
@@ -239,6 +215,14 @@ class ParticipantsViewSet(SplitDetailListSerializerViewSetMixin, viewsets.ModelV
 
     list_serializer = ParticipantsListSerializer
     detail_serialzier = ParticipantsSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        send_participant_invitation.delay(serializer.data.get("id"))
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Booking Confirmation</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .header {
+        background-color: #f8f9fa;
+        padding: 15px;
+        text-align: center;
+      }
+      .content {
+        padding: 20px;
+        border: 1px solid #dee2e6;
+      }
+      .footer {
+        margin-top: 20px;
+        text-align: center;
+        color: #6c757d;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h2>Booking Confirmation</h2>
+      </div>
+      <div class="content">
+        <p>Hello {{ user.username }},</p>
+        <p>You've successfully booked <strong>{{ room.room_name }}</strong>.</p>
+
+        <h3>Booking Details:</h3>
+        <ul>
+          <li><strong>Title:</strong> {{ reservation.title }}</li>
+          <li><strong>Date:</strong> {{ reservation.start|date:"F j, Y" }}</li>
+          <li>
+            <strong>Time:</strong>
+            {{time}}
+          </li>
+          <li><strong>Room:</strong> {{ room.room_name }}</li>
+          <li><strong>Location:</strong> {{ room.address }}</li>
+        </ul>
+      </div>
+      <div class="footer">
+        <p>&copy; {{ year }}</p>
+      </div>
+    </div>
+  </body>
+</html>

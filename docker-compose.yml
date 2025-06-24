@@ -9,6 +9,18 @@ services:
     depends_on:
       - db
       - redis
+    entrypoint: ["sh", "/entrypoint.sh"]
+
+  celery-worker:
+    build:
+      context: .
+    container_name: celery-worker
+    command: celery -A room_reservation worker -l INFO -P solo
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
 
   frontend:
     build: ./frontend
@@ -36,7 +48,6 @@ services:
     restart: always
     ports:
       - "6379:6379"
-    command: redis-server --save 20 1 --loglevel warning
     expose:
       - "6379"
     env_file:
