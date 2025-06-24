@@ -8,5 +8,6 @@ export const UserService = {
   deleteUser: (userId) => apiClient.delete(`/api/users/${userId}/`),
 
   getCurrentUser: () => apiClient.get("/api/users/me/"),
-  getUserReservations: () => apiClient.get("/api/users/reservations/"),
+  getUserReservations: (params = {}) =>
+    apiClient.get("/api/users/reservations/", { params }),
 };
